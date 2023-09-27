@@ -77,25 +77,23 @@ class State:
             return False
         return True
 
-    def winner(self, turn=None):
-        turn = self.turn % 4 if turn == None else turn
-        if turn == 0 and self.player[turn][0] == 0:
+    def winner(self):
+        if self.player[0][0] == 0:
             return 0
-        elif turn == 1 and self.player[turn][0] == 8:
+        elif self.player[1][0] == 8:
             return 1
-        elif turn == 2 and self.player[turn][1] == 8:
+        elif self.player[2][1] == 8:
             return 2
-        elif turn == 3 and self.player[turn][1] == 0:
+        elif self.player[3][1] == 0:
             return 3
         else:
             return -1
 
-    def is_done(self, turn=None):
-        turn = self.turn if turn == None else turn
+    def is_done(self):
         if (self.is_draw()):
             return 1
         else:
-            return self.winner(turn) != -1
+            return self.winner() != -1
 
     def next(self, action):
         p = self.player[self.turn % 4]
@@ -283,7 +281,7 @@ class State:
         return number
 
     def canReachEnd(self, idx):
-        if (self.is_done(idx)):
+        if (self.is_done()):
             return True
 
         que = deque()
@@ -324,7 +322,7 @@ class State:
         return False
 
     def closed_bfs(self):
-        for i, p in enumerate(self.player):
+        for i in range(4):
             if not self.canReachEnd(i):
                 return True
         return False
@@ -414,10 +412,23 @@ def random_action(state):
     legal_actions = state.legal_actions()
     return legal_actions[random.randint(0, len(legal_actions)-1)]
 
+
+
+
 if __name__ == '__main__':
     # State 클래스를 사용하여 게임 상태 초기화
-
     state = State()
+    while True:
+        if state.is_done():
+            break
+
+        action = random_action(state)
+
+        state = state.next(action)
+
+        print(state)
+    print()
+        
     # state = state.next(11)
     # print(state)
     # state = state.next(74)
