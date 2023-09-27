@@ -28,6 +28,7 @@ dc = [0,1,0,-1,1,-1,1,-1,0,2,0,-2]
 # Endpoint 0 : r=0, 1: r=8, 2: c=8, 3: c=0
 # 0~7 말 8~71 horizontal 72~135 vertical
 #처음 turn 0 ㅋ
+
 player_info = [[8,4,[],[]], [0,4,[],[]], [4,0,[],[]], [4,8,[],[]]]
 
 class State:
@@ -53,8 +54,10 @@ class State:
                 self.wallcnt += 1
                 self.serowall[v[0]][v[1]] = self.wallcnt
                 self.serowall[v[0]+1][v[1]] = self.wallcnt
-                
-
+    
+    def is_draw(self):
+        return self.turn > 100
+    
     def left_wall(self):
         count = len(self.player[self.turn % 4][2]) + len(self.player[self.turn % 4][3])
         return 5 - count
