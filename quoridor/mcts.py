@@ -9,13 +9,13 @@ MCTS_CNT = 5000
 PLAYOUT_CNT = 50
 
 class Node:
-    def __init__(self, state = State(), action = None):
+    def __init__(self, state, action = None):
         self.state = copy.deepcopy(state)
         self.action = copy.deepcopy(action)
         self.n = 0
         self.w = 0
         self.scores = [0,0,0,0]
-        self.children = [] # Node의 리스트..
+        self.children = [] # list of Node
 
     def expand(self):
         self.children = [ Node(self.state.next(action), action) for action in self.state.legal_actions() ]
@@ -35,15 +35,18 @@ def UCT(node, n_parent):
         return math.inf
     return w/n + c * ((math.log(n_parent) / n)**0.5)
 
-def playout(node, currentPlayer):
+def playout(node):
     win_list = np.array([0,0,0,0])
     for _ in range(PLAYOUT_CNT):
         currentState = copy.deepcopy(node.state)
         while True:
             actions = currentState.legal_actions()
+            #print(actions)
             random_action = rd.choice(actions)
             currentState = currentState.next(random_action)
             if currentState.is_done():
+                if currentState.is_draw:
+                    break
                 winner = currentState.winner()
                 win_list[winner] += 1
                 break
@@ -57,7 +60,7 @@ def MCTS(node, currentPlayer):
 
     if len(node.children) == 0:
         #terminal node - playout
-        result = playout(node, currentPlayer) #tuple (s1,s2,s3,s4)
+        result = playout(node) #tuple (s1,s2,s3,s4)
         node.scores = result
         node.w = result[currentPlayer]
         node.n += 1
@@ -82,9 +85,10 @@ def MCTS(node, currentPlayer):
 
 
 if __name__ == '__main__':
-    root = Node()
+    root = Node(State())
     rootPlayer = 0
-    for _ in range(MCTS_CNT):
+    for i in range(MCTS_CNT):
+        print('\r{}/{}'.format(i, MCTS_CNT))
         result = MCTS(root, rootPlayer)
 
-    root.findFinalMove()
+    print(root.findFinalMove().action)

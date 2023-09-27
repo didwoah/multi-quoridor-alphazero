@@ -408,29 +408,26 @@ def random_action(state):
     legal_actions = state.legal_actions()
     return legal_actions[random.randint(0,len(legal_actions)-1)]
 
+if __name__ == '__main__':
+    # State 클래스를 사용하여 게임 상태 초기화
 
-# State 클래스를 사용하여 게임 상태 초기화
+    state = State()
+    # state = state.next(11)
+    # print(state)
+    # state = state.next(74)
+    # print(state)
+    # r,c = state.number_to_coordinate(76,2)
+    # if(state.walling(2,r,c)):
+    #     state = state.next(76)
+    # print(state)
 
-state = State()
-# state = state.next(11)
-# print(state)
-# state = state.next(74)
-# print(state)
-# r,c = state.number_to_coordinate(76,2)
-# if(state.walling(2,r,c)):
-#     state = state.next(76)
-# print(state)
+    while True:
+        if state.is_done():
+            break
 
+        action = random_action(state)
 
+        state = state.next(action)
 
-
-while True:
-    if state.is_done():
-        break
-
-    action = random_action(state)
-
-    state = state.next(action)
-
-    print(state)
-    print()
+        print(state)
+        print()
