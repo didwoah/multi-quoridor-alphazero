@@ -50,12 +50,12 @@ class State:
             for h in p[2]:
                 self.wallcnt += 1
                 self.garowall[h[0]][h[1]] = self.wallcnt
-                self.garowall[h[0]][h[1]+1] = self.wallcnt
+                self.garowall[h[0]][h[1] + 1] = self.wallcnt
 
             for v in p[3]:
                 self.wallcnt += 1
                 self.serowall[v[0]][v[1]] = self.wallcnt
-                self.serowall[v[0]+1][v[1]] = self.wallcnt
+                self.serowall[v[0] + 1][v[1]] = self.wallcnt
 
     def is_draw(self):
         return self.turn > 100 or len(self.legal_actions()) == 0
@@ -414,8 +414,6 @@ def random_action(state):
     return legal_actions[random.randint(0, len(legal_actions)-1)]
 
 
-
-
 if __name__ == '__main__':
     # State 클래스를 사용하여 게임 상태 초기화
     state = State()
@@ -429,7 +427,7 @@ if __name__ == '__main__':
 
         print(state)
     print()
-        
+
     # state = state.next(11)
     # print(state)
     # state = state.next(74)
@@ -438,7 +436,6 @@ if __name__ == '__main__':
     # if(state.walling(2,r,c)):
     #     state = state.next(76)
     # print(state)
-
 
     while True:
         if state.is_done():
