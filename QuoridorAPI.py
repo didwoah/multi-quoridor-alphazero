@@ -16,7 +16,6 @@ class Direction(Enum):
     RightRight = 9,
     UpUp = 10,
     LeftLeft = 11,  
-
 class Wall(Enum) :
     garo = 1,
     sero = 2,
@@ -28,7 +27,7 @@ dc = [0,1,0,-1,1,-1,1,-1,0,2,0,-2]
 # player = (r, c, horizontalwall, verticalwall)
 # Endpoint 0 : r=0, 1: r=8, 2: c=8, 3: c=0
 # 0~7 말 8~71 horizontal 72~135 vertical
-#처음 turn 0
+#처음 turn 0 ㅋ
 player_info = [[8,4,[],[]], [0,4,[],[]], [4,0,[],[]], [4,8,[],[]]]
 
 class State:
@@ -56,8 +55,8 @@ class State:
                 self.serowall[v[0]+1][v[1]] = self.wallcnt
                 
 
-    def left_wall(self, turn):
-        count = len(self.player[turn][2]) + len(self.player[turn][3])
+    def left_wall(self):
+        count = len(self.player[self.turn % 4][2]) + len(self.player[self.turn % 4][3])
         return 5 - count
     
     def is_range(self, r, c):
@@ -126,7 +125,8 @@ class State:
                     else:
                         actions.append(direction)
         actions.sort()
-
+        if (self.left_wall() <= 0):
+            return actions
         for a in range(8,136):
             if a < 72:
                 type = 1
