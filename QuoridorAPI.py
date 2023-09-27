@@ -29,9 +29,10 @@ dc = [0,1,0,-1,1,-1,1,-1,0,2,0,-2]
 # Endpoint 0 : r=0, 1: r=8, 2: c=8, 3: c=0
 # 0~7 말 8~71 horizontal 72~135 vertical
 #처음 turn 0
+player_info = [[8,4,[],[]], [0,4,[],[]], [4,0,[],[]], [4,8,[],[]]]
 
 class State:
-    def __init__(self, player, turn = None): 
+    def __init__(self, player = player_info, turn = None): 
         # turn 0, 1, 2, 3
         #none일 경우 없다고 가정
         self.player = player
@@ -409,19 +410,16 @@ def random_action(state):
 
 
 # State 클래스를 사용하여 게임 상태 초기화
-player_info = [[8,4,[],[]], [0,4,[],[]], [4,0,[],[]], [4,8,[],[]]]
-state = State(player_info)
 
-
-
-state = state.next(11)
-print(state)
-state = state.next(74)
-print(state)
-r,c = state.number_to_coordinate(76,2)
-if(state.walling(2,r,c)):
-    state = state.next(76)
-print(state)
+state = State()
+# state = state.next(11)
+# print(state)
+# state = state.next(74)
+# print(state)
+# r,c = state.number_to_coordinate(76,2)
+# if(state.walling(2,r,c)):
+#     state = state.next(76)
+# print(state)
 
 
 
