@@ -3,92 +3,149 @@ import random as rd
 import math
 import copy
 from QuoridorAPI import State
-
-PLAYOUT_LIMIT = 10
-MCTS_CNT = 5000
-PLAYOUT_CNT = 50
-
-class Node:
-    def __init__(self, state, action = None):
-        self.state = copy.deepcopy(state)
-        self.action = copy.deepcopy(action)
-        self.n = 0
-        self.w = 0
-        self.scores = [0,0,0,0]
-        self.children = [] # list of Node
-
-    def expand(self):
-        self.children = [ Node(self.state.next(action), action) for action in self.state.legal_actions() ]
-    
-    def findFinalMove(self):
-        bestNext = None; bestN = 0
-        for child in self.children:
-            if bestN < child.n:
-                bestN = child.n
-                bestNext = child
-        return bestNext
-
-def UCT(node, n_parent):
-    w, n = node.w, node.n
-    c = 0.2
-    if n == 0:
-        return math.inf
-    return w/n + c * ((math.log(n_parent) / n)**0.5)
-
-def playout(node):
-    win_list = np.array([0,0,0,0])
-    for _ in range(PLAYOUT_CNT):
-        currentState = copy.deepcopy(node.state)
-        while True:
-            actions = currentState.legal_actions()
-            #print(actions)
-            random_action = rd.choice(actions)
-            currentState = currentState.next(random_action)
-            if currentState.is_done():
-                if currentState.is_draw:
-                    break
-                winner = currentState.winner()
-                win_list[winner] += 1
-                break
-    win_list = win_list / PLAYOUT_CNT
-    return win_list
+import time
 
 
-def MCTS(node, currentPlayer):
-    if len(node.children) == 0 and node.n == PLAYOUT_LIMIT:
-        node.expand()
+PARENT_NODE_COUNT = 3
+SIMULATION_COUNT = 100
 
-    if len(node.children) == 0:
-        #terminal node - playout
-        result = playout(node) #tuple (s1,s2,s3,s4)
-        node.scores = result
-        node.w = result[currentPlayer]
-        node.n += 1
-        return result
 
-    else:
-        bestChild = None; bestChildUCT = 0
-        for idx, child in enumerate(node.children):
-            uct = UCT(child, node.n)
-            if uct > bestChildUCT:
-                bestChildUCT = uct
-                bestChild = child
+def random_action(state):
+    legal_actions = state.legal_actions()
+    return legal_actions[rd.randint(0, len(legal_actions) - 1)]
+
+def playout(state):
+
+    if state.is_done():
+
+        if state.is_draw():
+            return [0.25 for _ in range(4)]
         
-        result = MCTS(bestChild, (currentPlayer + 1) % 4)
+        rlst = [0] * 4
+        rlst[state.winner()] += 1
+        return rlst
+    
+    return playout(state.next(random_action(state)))
 
-        if result[currentPlayer] > node.scores[currentPlayer]:
-            node.scores = result
-            node.w = result[currentPlayer]
-        node.n += 1
+def argmax(collection, key=None):
+    return collection.index(max(collection))
 
-        return node.scores
+def mcts_action(state):
+    class Node:
+        def __init__(self, state):
+            self.state = state
+            self.n = 0
+            self.scores = [0,0,0,0]
+            self.child_nodes = None
 
+        def get_w(self):
+            return self.scores[self.state.get_player()]
+
+        def next_child_node(self):
+            for child_node in self.child_nodes:
+                if child_node.n == 0:
+                    return child_node
+
+            t = 0
+            for c in self.child_nodes:
+                t += c.n
+            ucb1_values = []
+            for child_node in self.child_nodes:
+                ucb1_values.append(child_node.get_w() / child_node.n + (2 * math.log(t) / child_node.n) ** 0.5)
+
+            return self.child_nodes[argmax(ucb1_values)]
+
+        def expand(self):
+            self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions() ]
+        
+        def eval(self):
+            if self.state.is_done():
+                if self.state.is_draw():
+                    self.scores = [0.25 for _ in range(4)]
+                else:
+                    winner = self.state.winner()
+                    self.scores[winner] += 1
+                return self.scores
+
+            if not self.child_nodes:
+                s = copy.deepcopy(self.state)
+                values = playout(s)
+                self.scores = [self.scores[i] + values[i] for i in range(4)]
+
+                self.n += 1
+
+                if self.n == 10:
+                    self.expand()
+                return self.scores
+            else:
+                child_scores = self.next_child_node().eval()
+
+                player = self.state.get_player()
+
+                if self.scores[player] < child_scores[player]:
+                    self.scores = child_scores
+                self.n += 1
+
+                return child_scores
+
+            
+    root_node = Node(state)
+    root_node.expand()
+
+    for _ in range(SIMULATION_COUNT):
+        root_node.eval()
+
+    legal_actions = state.legal_actions()
+    n_list = []
+    for c in root_node.child_nodes:
+        n_list.append(c.n)
+    return legal_actions[argmax(n_list)]
+
+
+EP_GANE_COUNT = 10
+
+def play(next_actions):
+    state = State()
+
+    while True:
+
+        if state.is_done():
+            break
+
+        # print(state)
+        start = time.time()
+        next_action = next_actions[state.get_player()]
+        action = next_action(state)
+        end = time.time()
+        print('cost : {}'.format(end-start))
+
+
+        state = state.next(action)
+
+    if state.is_draw():
+        return [0.25 for _ in range(4)]
+    
+    rlst = [0] * 4
+    rlst[state.winner()] += 1
+    return rlst
+
+def change_turn(collection):
+    return collection[1:] , collection[0]
+
+def evaluate_algorithm_of(label, next_actions):
+
+    total_point = 0
+
+    for i in range(EP_GANE_COUNT):
+        total_point += play(next_actions)[i % 4]
+        change_turn(next_actions)
+
+        print('\rEvaluate {}/{}'.format(i+1, EP_GANE_COUNT), end='')
+    print('')
+
+    average_point = total_point / EP_GANE_COUNT
+    print(label.format(average_point))
 
 if __name__ == '__main__':
-    root = Node(State())
-    rootPlayer = 0
-    for i in range(MCTS_CNT):
-        print('\r{}/{}'.format(i, MCTS_CNT))
-        result = MCTS(root, rootPlayer)
-
-    print(root.findFinalMove().action)
+    next_actions = (mcts_action, random_action, random_action, random_action)
+    evaluate_algorithm_of('VS_RANDOM {:3f}', next_actions)
