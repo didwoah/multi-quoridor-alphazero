@@ -23,7 +23,7 @@ class MyState(State):
         return [MyState(copy.deepcopy(self).next(action)) for action in actions]
 
     def evaluate(self):
-        return huristic_evaluation.huristic_4(self)
+        return huristic_evaluation.huristic_5(self)
     
     def get_left_wall(self, turn):
         count = len(self.player[turn][2]) + \
@@ -31,7 +31,7 @@ class MyState(State):
         return 5 - count
     
 
-def max_n(now_state, depth):
+def max_n(now_state: MyState, depth):
     now_state = copy.deepcopy(now_state)
 
     if depth == 0 or now_state.is_end():
@@ -44,7 +44,7 @@ def max_n(now_state, depth):
     next_states = now_state.generate_states()
     for state in next_states:
         values, _ = max_n(state, depth-1)
-        value = values[now_state.turn]
+        value = values[now_state.turn % 4]
         if value > best_val:
             best_val = value
             best_state = state
@@ -90,8 +90,8 @@ def max_n_pruning(now_state: MyState, depth, upper_bound, global_upper_bound):
     next_states = now_state.generate_states()
 
     best_vals, _ = max_n_pruning(next_states[0], depth-1, global_upper_bound, global_upper_bound)
-    best_state = next_states[0]
     best_val = best_vals[now_state.turn%4]
+    best_state = next_states[0]
 
     for state in next_states[1:]:
         if best_val >= upper_bound:
@@ -108,7 +108,14 @@ def max_n_pruning(now_state: MyState, depth, upper_bound, global_upper_bound):
     return best_vals, best_state
 
 def bot_play(state: MyState):
-    return max_n_pruning(state, 1, upper_bound=1, global_upper_bound=1)
+    if state.turn < 30:
+        depth = 1
+    elif state.turn < 50:
+        depth = 2
+    else:
+        depth = 3
+    return max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
+    # return max_n(state, depth)
 
 def person_play(state: MyState):
     print(f"legal actions: {state.legal_actions()}")
@@ -116,7 +123,10 @@ def person_play(state: MyState):
     return MyState(state.next(action))
 
 def play(state: MyState, is_person, time_list=[]):
-    print(f"turn: {state.turn % 4}")
+    state = copy.deepcopy(state)
+
+    print(f"turn: {state.turn}")
+
     if is_person:
         next_state = person_play(state)
     else:
@@ -136,7 +146,7 @@ def play(state: MyState, is_person, time_list=[]):
     return next_state
 
 if __name__ == "__main__":
-    now_state = MyState()
+    now_state= MyState()
 
     print(str(now_state), end='')
     print("------------------------------------")
@@ -156,6 +166,8 @@ if __name__ == "__main__":
 
         now_state = play(now_state, True)
         
+    print(f"\n{now_state.winner()} win!\n")
+    
     sum = 0
     count = 0
     for t in time_list:
