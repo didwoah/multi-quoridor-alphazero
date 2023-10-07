@@ -1,5 +1,6 @@
 import copy
 import time
+import random
 
 import sys
 sys.path.append("D:/Project/multi-quoridor-alphazero")
@@ -107,72 +108,97 @@ def max_n_pruning(now_state: MyState, depth, upper_bound, global_upper_bound):
 
     return best_vals, best_state
 
-def bot_play(state: MyState):
+def random_play(state: MyState, p=True):
+    if p:
+        print("random play")
+
+    return random.choice(state.generate_states())
+
+def bot_play(state: MyState, p=True):
+    if p:
+        print("max_n play")
+
     if state.turn < 30:
         depth = 1
     elif state.turn < 50:
         depth = 2
     else:
         depth = 3
-    return max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
+    values, next_state = max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
+
+    if p:
+        print(f"values: {values}")
+
+    return next_state
     # return max_n(state, depth)
 
-def person_play(state: MyState):
-    print(f"legal actions: {state.legal_actions()}")
+def person_play(state: MyState, p=True):
+    if p:
+        print(f"legal actions: {state.legal_actions()}")
     action = int(input("action: "))
     return MyState(state.next(action))
 
-def play(state: MyState, is_person, time_list=[]):
+def play(state: MyState, player, time_list=None, p=True):
     state = copy.deepcopy(state)
 
-    print(f"turn: {state.turn}")
+    if p:
+        print(f"turn: {state.turn}", flush=True)
 
-    if is_person:
-        next_state = person_play(state)
-    else:
-        start = time.time()
-        values, next_state = bot_play(state)
-        end = time.time()
+    start = time.time()
+    next_state = player(state, p)
+    end = time.time()
 
-        run_time = end - start
+    run_time = end - start
+    if time_list is not None:
         time_list.append(run_time)
-
-        print(values)
-        print(f"{run_time:.5f} sec")
-
-    print(str(next_state), end='')
-    print("------------------------------------")
+    
+    if p:
+        print(f"{run_time:.5f} sec", flush=True)
+        print(str(next_state), end='', flush=True)
+        print("------------------------------------", flush=True)
     
     return next_state
 
 if __name__ == "__main__":
-    now_state= MyState()
+    # now_state= MyState()
 
-    print(str(now_state), end='')
-    print("------------------------------------")
+    # print(str(now_state), end='')
+    # print("------------------------------------")
     time_list = []
-    while(not now_state.is_end()):
-        now_state = play(now_state, False, time_list)
-        if now_state.is_end():
-            break
-
-        now_state = play(now_state, False)
-        if now_state.is_end():
-            break
-
-        now_state = play(now_state, False)
-        if now_state.is_end():
-            break
-
-        now_state = play(now_state, True)
+    r = 100
+    wc = [0, 0, 0, 0, 0]
+    for i in range(r):
+        now_state= MyState()
         
-    print(f"\n{now_state.winner()} win!\n")
-    
-    sum = 0
-    count = 0
-    for t in time_list:
-        print(f"{t:.5f}", end=' ')
-        sum += t
-        count += 1
-    print(f"\nsum: {sum:.5f}, count: {count}")
-    print(f"avg: {sum/count:.5f}")
+        while(not now_state.is_end()):
+            now_state = play(now_state, bot_play, p=False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, random_play, p=False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, bot_play, p=False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, bot_play, p=False)
+            
+        # print(f"\n{now_state.winner()} win!\n")
+        
+        # sum = 0
+        # count = 0
+        # for t in time_list:
+        #     print(f"{t:.5f}", end=' ')
+        #     sum += t
+        #     count += 1
+        # print(f"\nsum: {sum:.5f}, count: {count}")
+        # print(f"avg: {sum/count:.5f}")
+
+        if now_state.winner() != -1:
+            wc[now_state.winner()] += 1
+        else:
+            wc[4] += 1
+
+        print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", end='\r', flush=True)
