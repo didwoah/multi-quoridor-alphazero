@@ -1,8 +1,7 @@
 from QuoridorAPI import State
-from quoridor.pv_mcts import pv_mtcs_scores
-from quoridor.model import DN_OUTPUT_SIZE
+from pv_mcts import pv_mtcs_scores
+from model import DN_OUTPUT_SIZE
 from datetime import datetime
-from pathlib import Path
 import numpy as np
 import pickle
 import os

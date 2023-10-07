@@ -5,8 +5,7 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 import pickle
 from pathlib import Path
-from quoridor.model import DN_INPUT_SHAPE
-from quoridor.model import resnet
+from model import DN_INPUT_SHAPE, resnet
 
 RN_EPOCHS = 100
 a, b, c = DN_INPUT_SHAPE
