@@ -218,6 +218,18 @@ class State:
 
         return actions
     
+    def legal_walls(self):
+        actions = []
+        for a in range(8, 136):
+            if a < 72:
+                type = 1
+            elif a < 136:
+                type = 2
+            row, col = self.number_to_coordinate(a, type)
+            if (self.walling(type, row, col)):
+                actions.append(a)
+        return actions
+
     def action_mapping_abs2rel(self, turn, action_number):
         turn_shift_list = [0, 1, 3, 2]
         return self.action_mapping_rel2abs(turn_shift_list[turn], action_number)
@@ -462,6 +474,39 @@ class State:
                 return False
         else:
             return False
+        
+    def brain3_walling(self, type, startx, starty):
+        if not self.crossWall(type, startx, starty):
+            if type == Wall.garo.value[0]:
+                self.wallcnt += 1
+                self.garowall[startx][starty] = self.wallcnt
+                self.garowall[startx][starty + 1] = self.wallcnt
+
+                if self.closed_bfs():
+                    ret = (-1, -1, -1)
+                else:
+                    ret = (type, startx, starty)
+                self.garowall[startx][starty] = 0
+                self.garowall[startx][starty + 1] = 0
+                self.wallcnt -= 1
+                return ret
+
+            elif type == Wall.sero.value[0]:
+                self.wallcnt += 1
+                self.serowall[startx][starty] = self.wallcnt
+                self.serowall[startx + 1][starty] = self.wallcnt
+
+                if self.closed_bfs():
+                    ret = (-1, -1, -1)
+                else:
+                    ret = (type, startx, starty)
+                self.serowall[startx][starty] = 0
+                self.serowall[startx + 1][starty] = 0
+                self.wallcnt -= 1
+                return ret
+        else:
+            return (-1, -1, -1) #cross wall
+
 
     def __str__(self):
         result = ""
