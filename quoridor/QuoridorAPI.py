@@ -24,20 +24,22 @@ class Wall(Enum):
     sero = 2,
 
 
-dr = (1, 0, -1, 0, 1, 1, -1, -1, 2, 0, -2, 0)
-dc = (0, 1, 0, -1, 1, -1, 1, -1, 0, 2, 0, -2)
+dr = [1, 0, -1, 0, 1, 1, -1, -1, 2, 0, -2, 0]
+dc = [0, 1, 0, -1, 1, -1, 1, -1, 0, 2, 0, -2]
 # player = [player0, player1, player2, player 3]
 # player = (r, c, horizontalwall, verticalwall)
 # Endpoint 0 : r=0, 1: r=8, 2: c=8, 3: c=0
 # 0~7 말 8~71 horizontal 72~135 vertical
-# 처음 turn 0 
+# 처음 turn 0 ㅋ
+
+player_info = [[8, 4, [], []], [0, 4, [], []], [4, 0, [], []], [4, 8, [], []]]
 
 
 class State:
-    def __init__(self, player=[[8, 4, [], []], [0, 4, [], []], [4, 0, [], []], [4, 8, [], []]], turn=None):
+    def __init__(self, player=player_info, turn=None):
         # turn 0, 1, 2, 3
         # none일 경우 없다고 가정
-        self.player = [copy.deepcopy(player[i]) for i in range(4)]
+        self.player = player
         self.turn = turn if turn != None else 0
         self.wallcnt = 0  # 필요함.. 교차되는 것 검증할때 벽 num
         self.board = [[0 for _ in range(9)] for _ in range(9)]
@@ -51,12 +53,12 @@ class State:
             for h in p[2]:
                 self.wallcnt += 1
                 self.garowall[h[0]][h[1]] = self.wallcnt
-                self.garowall[h[0]][h[1] + 1] = self.wallcnt
+                self.garowall[h[0]][h[1]+1] = self.wallcnt
 
             for v in p[3]:
                 self.wallcnt += 1
                 self.serowall[v[0]][v[1]] = self.wallcnt
-                self.serowall[v[0] + 1][v[1]] = self.wallcnt
+                self.serowall[v[0]+1][v[1]] = self.wallcnt
 
     def is_draw(self):
         return self.draw_flag
@@ -96,7 +98,6 @@ class State:
             self.draw_flag = True
             return True
         return self.winner() != -1
-
 
     def next(self, action):
 
@@ -419,6 +420,8 @@ class State:
 def random_action(state):
     legal_actions = state.legal_actions()
     return legal_actions[random.randint(0, len(legal_actions)-1)]
+
+
 
 
 if __name__ == '__main__':
