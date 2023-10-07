@@ -155,13 +155,14 @@ class State:
             return self.coordinate_to_number(r, c, wall_type)
 
 
-    def next(self, action):
+    def next(self, action, is_alpha_zero=False):
 
         if action == None:
             self.turn += 1
             return State(self.player, self.turn)
         
-        action = self.action_mapping_rel2abs(self.get_player(), action)
+        if is_alpha_zero:
+            action = self.action_mapping_rel2abs(self.get_player(), action)
         
         p = self.player[self.get_player()]
         

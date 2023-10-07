@@ -19,7 +19,7 @@ def predict(model, state: State):
 
     y = model(x)
 
-    polices = y[1][0][list(state.legal_actions())]
+    polices = y[1][0][list(state.legal_actions(is_alpha_zero=True))]
     polices /= sum(polices) if sum(polices) else 1
     values = y[0][0]
     
@@ -61,7 +61,7 @@ def pv_mtcs_scores(model, state, temperature):
 
         def expand(self, legal_actions = None):
             if not legal_actions:
-                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions() ]
+                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions(True) ]
             else:
                 self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in legal_actions ]
         
@@ -76,7 +76,7 @@ def pv_mtcs_scores(model, state, temperature):
 
             if not self.child_nodes:
 
-                polices, values = predict(model, self.state)
+                _, values = predict(model, self.state)
                 self.scores = [self.scores[i] + values[i] for i in range(4)]
                 self.n += 1
 
@@ -111,7 +111,7 @@ def pv_mtcs_scores(model, state, temperature):
 def pv_mcts_action(model, temperature = 0):
     def pv_mcts_action(state):
         scores = pv_mtcs_scores(model, state, temperature)
-        return np.random.choice(state.legal_actions(), p=scores)
+        return np.random.choice(state.legal_actions(True), p=scores)
     
     return pv_mcts_action
 
@@ -135,6 +135,6 @@ if __name__ == '__main__':
 
         action = next_action(state)
 
-        state = state.next(action)
+        state = state.next(action, is_alpha_zero=True)
 
         print(state)
