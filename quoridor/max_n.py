@@ -3,7 +3,8 @@ import time
 import random
 
 import sys
-sys.path.append("D:/Project/multi-quoridor-alphazero")
+# sys.path.append("D:/Project/multi-quoridor-alphazero")
+sys.path.append("../")
 
 from QuoridorAPI import State
 import quoridor.huristic_evaluation as huristic_evaluation
@@ -171,15 +172,15 @@ if __name__ == "__main__":
         now_state= MyState()
         
         while(not now_state.is_end()):
-            now_state = play(now_state, bot_play, p=False)
-            if now_state.is_end():
-                break
-
             now_state = play(now_state, random_play, p=False)
             if now_state.is_end():
                 break
 
             now_state = play(now_state, bot_play, p=False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, random_play, p=False)
             if now_state.is_end():
                 break
 
