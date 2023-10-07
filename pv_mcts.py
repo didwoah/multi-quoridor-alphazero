@@ -1,27 +1,28 @@
 import math
 from QuoridorAPI import State
-from model import DN_INPUT_SHAPE
-from pathlib import Path
 import numpy as np
 import copy
-from model import resnet
+from model import resnet, DN_INPUT_SHAPE
+import torch
 
 PARENT_NODE_COUNT = 3
 PV_EVALUATE_COUNT = 1000
 
-def predict(model, state):
+def predict(model, state: State):
 
     a, b, c = DN_INPUT_SHAPE
 
-    # state한테서 input ndarray 들고오는 method 
+    x = state.get_input_state()
+    x =  torch.tensor(x, dtype=torch.float32)
+    x = x.reshape(1, a, b, c)
 
-    # x = x.reshape(c, a, b).transpose(1, 2, 0).reshape(1, a, b, c)
+    print(x.shape)
 
-    y = model.predict(x, batch_size = 1)
+    y = model(x)
 
-    polices = y[1][list(state.legal_actions())]
+    polices = y[1][0][list(state.legal_actions())]
     polices /= sum(polices) if sum(polices) else 1
-    values = y[0]
+    values = y[0][0]
     
     return polices, values
 
@@ -94,10 +95,10 @@ def pv_mtcs_scores(model, state, temperature):
 
                 return child_scores
 
-    root_node = Node(state, 0)
+    root_node = Node(state)
 
     for _ in range(PV_EVALUATE_COUNT):
-        root_node.evaluate()
+        root_node.eval()
 
     scores = nodes_to_scores(root_node.child_nodes)
     if temperature == 0:

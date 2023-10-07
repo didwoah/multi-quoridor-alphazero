@@ -115,7 +115,7 @@ def random_play(state: MyState, p=True):
 
     return random.choice(state.generate_states())
 
-def bot_play(state: MyState, p=True):
+def max_n_action(state: MyState, p=True):
     if p:
         print("max_n play")
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, bot_play, p=False)
+            now_state = play(now_state, max_n_action, p=False)
             if now_state.is_end():
                 break
 
@@ -184,7 +184,7 @@ if __name__ == "__main__":
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, bot_play, p=False)
+            now_state = play(now_state, max_n_action, p=False)
             
         # print(f"\n{now_state.winner()} win!\n")
         
