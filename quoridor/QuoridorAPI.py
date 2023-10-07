@@ -74,22 +74,21 @@ class State:
         currPlayer = self.get_player()
         for i, idx in enumerate(range(0, 8, 2)):
             tmpPlayer = self.player[(currPlayer + i) % 4]
-            row, col = self.rotate(currPlayer, tmpPlayer[0]*2, tmpPlayer[1]*2)
+            row, col = self.rotate17(currPlayer, tmpPlayer[0]*2, tmpPlayer[1]*2)
             res[idx][row][col] = 1
             for w in tmpPlayer[2]: #가로벽: 행*2+1,열*2
-                row, col = self.rotate(currPlayer, w[0]*2+1, w[1]*2)
+                row, col = self.rotate17(currPlayer, w[0]*2+1, w[1]*2)
                 res[idx+1][row][col] = 1
-                row, col = self.rotate(currPlayer, w[0]*2+1, w[1]*2+2)
+                row, col = self.rotate17(currPlayer, w[0]*2+1, w[1]*2+2)
                 res[idx+1][row][col] = 1
             for w in tmpPlayer[3]: #세로벽: 행*2,열*2+1
-                row, col = self.rotate(currPlayer, w[0]*2, w[1]*2+1)
+                row, col = self.rotate17(currPlayer, w[0]*2, w[1]*2+1)
                 res[idx+1][row][col] = 1
-                row, col = self.rotate(currPlayer, w[0]*2+2, w[1]*2+1)
+                row, col = self.rotate17(currPlayer, w[0]*2+2, w[1]*2+1)
                 res[idx+1][row][col] = 1
         return res
         
-
-    def rotate(self, playerNum, row, col):
+    def rotate17(self, playerNum, row, col):
         if playerNum == 0:
             return row, col
         elif playerNum == 1: #2번회전
@@ -98,7 +97,6 @@ class State:
             return 16-col,row
         else: #playerNum == 3 #시계
             return col,16-row
-
 
     def left_wall(self):
         count = len(self.player[self.turn % 4][2]) + \
@@ -322,6 +320,39 @@ class State:
         else:
             number += 72
         return number
+    
+    def action_mapping_rel2abs(self, turn, action_number):
+        if turn == 0:
+            return action_number
+        
+        push_list = [0,4,6,2]
+        idx_list = [0,2,4,6,1,7,3,5]
+        action_list = [0,4,1,6,2,7,3,5]
+        
+        if action_number < 8:
+            return action_list[(idx_list[action_number] + push_list[turn]) % 8]
+                
+        else:
+            wall_type = action_number // 72 + 1
+            r, c = self.number_to_coordinate(action_number)
+            r, c = self.rotate8(turn, r, c)
+            if turn != 1:
+                wall_type = (wall_type % 2) + 1
+            return self.coordinate_to_number(r, c, wall_type)
+        
+    def action_mapping_abs2rel(self, turn, action_number):
+        turn_shift_list = [0, 1, 3, 2]
+        return self.action_mapping_rel2abs(turn_shift_list[turn], action_number)
+
+    def rotate8(self, turn, r, c):
+        if turn == 0:
+            return r, c
+        elif turn == 1:
+            return 7-r-1, 7-c-1
+        elif turn == 2:
+            return c, 7-r-1
+        elif turn == 3:
+            return 7-c-1, r
 
     def canReachEnd(self, idx):
         if (self.is_done()):
