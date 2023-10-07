@@ -35,7 +35,7 @@ class resnet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Flatten(),
             nn.Linear(4*17*17, 256),
-            nn.Linear(256, 1)  
+            nn.Linear(256, 4)  
         )
 
         self.policy_net = nn.Sequential(
