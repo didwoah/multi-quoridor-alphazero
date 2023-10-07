@@ -1,38 +1,40 @@
-import numpy as np
-import random as rd
 import math
-import copy
 from QuoridorAPI import State
-import time
-
+from model import DN_INPUT_SHAPE
+from pathlib import Path
+import numpy as np
+import copy
+from model import resnet
 
 PARENT_NODE_COUNT = 3
 PV_EVALUATE_COUNT = 1000
 
+def predict(model, state):
 
-def random_action(state):
-    legal_actions = state.legal_actions()
-    if len(legal_actions) == 0:
-        return None
-    return legal_actions[rd.randint(0, len(legal_actions) - 1)]
+    a, b, c = DN_INPUT_SHAPE
 
-def playout(state):
+    # state한테서 input ndarray 들고오는 method 
 
-    if state.is_done():
+    # x = x.reshape(c, a, b).transpose(1, 2, 0).reshape(1, a, b, c)
 
-        if state.is_draw():
-            return [0.25 for _ in range(4)]
-        
-        rlst = [0] * 4
-        rlst[state.winner()] += 1
-        return rlst
+    y = model.predict(x, batch_size = 1)
+
+    polices = y[1][list(state.legal_actions())]
+    polices /= sum(polices) if sum(polices) else 1
+    values = y[0]
     
-    return playout(state.next(random_action(state)))
+    return polices, values
+
+def nodes_to_scores(nodes):
+    scores = []
+    for c in nodes:
+        scores.append(c.n)
+    return scores
 
 def argmax(collection, key=None):
     return collection.index(max(collection))
 
-def mcts_action(state):
+def pv_mtcs_scores(model, state, temperature):
     class Node:
         def __init__(self, state):
             self.state = state
@@ -73,13 +75,12 @@ def mcts_action(state):
                 return self.scores
 
             if not self.child_nodes:
-                s = copy.deepcopy(self.state)
-                values = playout(s)
-                self.scores = [self.scores[i] + values[i] for i in range(4)]
 
+                polices, values = predict(model, self.state)
+                self.scores = [self.scores[i] + values[i] for i in range(4)]
                 self.n += 1
 
-                if self.n == 10:
+                if self.n == PARENT_NODE_COUNT:
                     self.expand()
                 return self.scores
             else:
@@ -93,66 +94,46 @@ def mcts_action(state):
 
                 return child_scores
 
-    legal_actions = state.legal_actions()
-    if len(legal_actions) == 0:
-        return None
-            
-    root_node = Node(state)
-    root_node.expand(legal_actions)
+    root_node = Node(state, 0)
 
     for _ in range(PV_EVALUATE_COUNT):
-        root_node.eval()
+        root_node.evaluate()
 
-    n_list = []
-    for c in root_node.child_nodes:
-        n_list.append(c.n)
-    return legal_actions[argmax(n_list)]
+    scores = nodes_to_scores(root_node.child_nodes)
+    if temperature == 0:
+        action = np.argmax(scores)
+        scores = np.zeros(len(scores))
+        scores[action] = 1
+    else:
+        scores = boltzman(scores, temperature)
+    return scores
 
+def pv_mcts_action(model, temperature = 0):
+    def pv_mcts_action(state):
+        scores = pv_mtcs_scores(model, state, temperature)
+        return np.random.choice(state.legal_actions(), p=scores)
+    
+    return pv_mcts_action
 
-EP_GANE_COUNT = 10
+def boltzman(xs, temperature):
+    xs = [x ** (1/temperature) for x in xs]
+    return [x / sum(xs) for x in xs]
 
-def play(next_actions):
+if __name__ == '__main__':
+
+    model  = resnet()
+
     state = State()
+
+    next_action = pv_mcts_action(model, 1.0)
 
     while True:
 
         if state.is_done():
             break
 
-        # print(state)
-        start = time.time()
-        next_action = next_actions[state.get_player()]
         action = next_action(state)
-        end = time.time()
-        print('cost : {}'.format(end-start))
-
 
         state = state.next(action)
 
-    if state.is_draw():
-        return [0.25 for _ in range(4)]
-    
-    rlst = [0] * 4
-    rlst[state.winner()] += 1
-    return rlst
-
-def change_turn(collection):
-    return collection[1:] , collection[0]
-
-def evaluate_algorithm_of(label, next_actions):
-
-    total_point = 0
-
-    for i in range(EP_GANE_COUNT):
-        total_point += play(next_actions)[i % 4]
-        change_turn(next_actions)
-
-        print('\rEvaluate {}/{}'.format(i+1, EP_GANE_COUNT), end='')
-    print('')
-
-    average_point = total_point / EP_GANE_COUNT
-    print(label.format(average_point))
-
-if __name__ == '__main__':
-    next_actions = (mcts_action, random_action, random_action, random_action)
-    evaluate_algorithm_of('VS_RANDOM {:3f}', next_actions)
+        print(state)

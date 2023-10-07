@@ -4,6 +4,10 @@ from block import ResidualBlock
 import torch
 from torchsummary import summary
 
+DN_RESIDUAL_NUM = 16
+DN_INPUT_SHAPE = (8, 17, 17) # player 1 말위치 + player 1이 놓은 벽
+DN_OUTPUT_SIZE = 136
+
 class resnet(nn.Module):
 
     def __init__(self):
@@ -39,7 +43,7 @@ class resnet(nn.Module):
             nn.BatchNorm2d(2),
             nn.ReLU(inplace=True),
             nn.Flatten(),
-            nn.Linear(2*17*17, 136)
+            nn.Linear(2*17*17, DN_OUTPUT_SIZE)
         )
 
 
@@ -67,4 +71,4 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     model = resnet().to(device)
-    summary(model, (8, 17, 17), device=device.type)
+    summary(model, DN_INPUT_SHAPE, device=device.type)

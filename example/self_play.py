@@ -1,5 +1,5 @@
 from game import State
-from pv_mtcs import pv_mtcs_scores
+from example.pv_mtcs import pv_mtcs_scores
 from dual_network import DN_OUTPUT_SIZE
 from datetime import datetime
 from tensorflow.keras.models import load_model

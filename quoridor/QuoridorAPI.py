@@ -2,7 +2,7 @@ from enum import Enum
 import copy
 from collections import deque
 import random
-
+import time
 
 class Direction(Enum):
     Down = 0,
@@ -43,6 +43,7 @@ class State:
         self.board = [[0 for _ in range(9)] for _ in range(9)]
         self.serowall = [[0 for _ in range(8)] for _ in range(9)]
         self.garowall = [[0 for _ in range(9)] for _ in range(8)]
+        self.draw_flag = False
 
         for i, p in enumerate(player):
             self.board[p[0]][p[1]] = i + 1
@@ -58,7 +59,7 @@ class State:
                 self.serowall[v[0] + 1][v[1]] = self.wallcnt
 
     def is_draw(self):
-        return self.turn > 100 or len(self.legal_actions()) == 0
+        return self.draw_flag
     
     def get_player(self):
         return self.turn % 4
@@ -91,14 +92,20 @@ class State:
             return -1
 
     def is_done(self):
-        if (self.is_draw()):
+        if self.turn > 248:
+            self.draw_flag = True
             return True
         return self.winner() != -1
 
 
     def next(self, action):
-        p = self.player[self.get_player()]
 
+        if not action:
+            self.turn += 1
+            return State(self.player, self.turn)
+        
+        p = self.player[self.get_player()]
+        
         if (action < 4):
             if (self.can_go(action, p[0], p[1], p[0] + dr[action], p[1] + dc[action])):
                 dir = action
@@ -416,34 +423,37 @@ def random_action(state):
 
 if __name__ == '__main__':
     # State 클래스를 사용하여 게임 상태 초기화
+    start = time.time()
     state = State()
+    end = time.time()
+    print('STATE COST {}'.format(end - start))
     while True:
-        if state.is_done():
+
+        start = time.time()
+        flag = state.is_done()
+        end = time.time()
+        print('is_done COST {}'.format(end - start))  
+
+
+        if flag:
             break
 
+        start = time.time()
         action = random_action(state)
+        end = time.time()
+        print('random_action COST {}'.format(end-start))
 
+        start= time.time()
         state = state.next(action)
+        end = time.time()
+        print('state.next COST {}'.format(end-start))
 
-        print(state)
-    print()
+        start= time.time()
+        state.legal_actions()
+        end = time.time()
+        print('state.legal_actions COST {}'.format(end-start))
 
-    # state = state.next(11)
-    # print(state)
-    # state = state.next(74)
-    # print(state)
-    # r,c = state.number_to_coordinate(76,2)
-    # if(state.walling(2,r,c)):
-    #     state = state.next(76)
-    # print(state)
+        # print(state)
 
-    while True:
-        if state.is_done():
-            break
-
-        action = random_action(state)
-
-        state = state.next(action)
-
-    print(state)
+        break
     print()

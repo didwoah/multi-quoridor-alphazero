@@ -1,5 +1,5 @@
 from game import State
-from pv_mtcs import pv_mcts_action
+from example.pv_mtcs import pv_mcts_action
 from tensorflow.keras.models import load_model
 from tensorflow.keras import backend as K
 from pathlib import Path
