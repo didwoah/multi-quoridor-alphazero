@@ -1,10 +1,7 @@
-from game import State
-from example.pv_mtcs import pv_mtcs_scores
-from dual_network import DN_OUTPUT_SIZE
+from QuoridorAPI import State
+from pv_mcts import pv_mtcs_scores
+from model import DN_OUTPUT_SIZE
 from datetime import datetime
-from tensorflow.keras.models import load_model
-from tensorflow.keras import backend as K
-from pathlib import Path
 import numpy as np
 import pickle
 import os
@@ -12,10 +9,13 @@ import os
 SP_GAME_COUNT = 10
 SP_TEMPERATURE = 1.0
 
-def first_player_value(ended_state):
-    if ended_state.is_lose():
-        return -1 if ended_state.is_first_player() else 1
-    return 0
+def get_values(state):
+    if state.is_draw():
+            return [0.25 for _ in range(4)]
+        
+    rlst = [0] * 4
+    rlst[state.winner()] += 1
+    return rlst
 
 def write_data(history):
     now = datetime.now()
@@ -36,22 +36,19 @@ def play(model):
         polices = [0] * DN_OUTPUT_SIZE
         for action, policy in zip(state.legal_actions(), scores):
             polices[action] = policy
-        history.append([[state.pieces, state.enemy_pieces,], polices, None])
+        history.append([state.get_input_state(), polices, None])
 
         action = np.random.choice(state.legal_actions(), p=scores)
 
         state = state.next(action)
 
-    value = first_player_value(state)
+    values = get_values(state)
     for i in range(len(history)):
-        history[i][2] = value
-        value = -value
+        history[i][2] = values
     return history
 
 def self_play():
     history = []
-
-    model = load_model('./model/best.h5')
 
     for i in range(SP_GAME_COUNT):
         h = play(model)
@@ -61,7 +58,6 @@ def self_play():
     print('')
 
     write_data(history)
-    K.clear_session()
     del model
 
 if __name__ == '__main__':
