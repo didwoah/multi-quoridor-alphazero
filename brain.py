@@ -115,22 +115,54 @@ def get_pivot(state: MyState):
             sum = sum + min_distance(state, state.player[turn][0],state.player[turn][1], way, en)
     return sum
 
+def brain3_walling(state: MyState, type, startx, starty, mean):
+        ret = (-1, -1, -1, mean)
+        if not state.crossWall(type, startx, starty):
+            if type == 1:
+                state.wallcnt += 1
+                state.garowall[startx][starty] = state.wallcnt
+                state.garowall[startx][starty + 1] = state.wallcnt
+
+                if not state.closed_bfs():
+                    pivot = get_pivot(state)
+                    if pivot > mean:
+                        mean = pivot
+                        ret = (type, startx, starty, mean)
+                state.garowall[startx][starty] = 0
+                state.garowall[startx][starty + 1] = 0
+                state.wallcnt -= 1
+                return ret
+
+            elif type == 2:
+                state.wallcnt += 1
+                state.serowall[startx][starty] = state.wallcnt
+                state.serowall[startx + 1][starty] = state.wallcnt
+
+                if not state.closed_bfs():
+                    pivot = get_pivot(state)
+                    if pivot > mean:
+                        mean = pivot
+                        ret = (type, startx, starty, mean)
+                state.serowall[startx][starty] = 0
+                state.serowall[startx + 1][starty] = 0
+                state.wallcnt -= 1
+                return ret
+        else:
+            return (-1, -1, -1, mean) #cross wall
+        
 def brain3walling(state:MyState):
     mean = get_pivot(state)
     temp = mean
     for type in range(1,3):
         for r in range(8):
             for c in range(8):
-                a, b, c = state.brain3_walling(type, r, c)
+                a, b, c, mean = brain3_walling(state, type, r, c, mean)
                 if a == -1:
                     continue
-                pivot = get_pivot(state)
-                if pivot > mean:
-                    mean = pivot
-                    istype, isr, isc = a, b, c
+                istype, isr, isc = a, b, c
 
     if mean > temp:
-        return state.coordinate_to_number(istype, isr, isc)
+        return state.coordinate_to_number(isr, isc, istype)
     else:
         return -1
 

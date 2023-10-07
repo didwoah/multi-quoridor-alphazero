@@ -4,6 +4,8 @@ from collections import deque
 import random
 import time
 import numpy as np
+import sys
+sys.path.append("C:/Users/user/Desktop/Project/Quorido/multi-quoridor-alphazero")
 
 class Direction(Enum):
     Down = 0,
@@ -475,40 +477,7 @@ class State:
                 return False
         else:
             return False
-        
-    def brain3_walling(self, type, startx, starty):
-        if not self.crossWall(type, startx, starty):
-            if type == Wall.garo.value[0]:
-                self.wallcnt += 1
-                self.garowall[startx][starty] = self.wallcnt
-                self.garowall[startx][starty + 1] = self.wallcnt
-
-                if self.closed_bfs():
-                    ret = (-1, -1, -1)
-                else:
-                    ret = (type, startx, starty)
-                self.garowall[startx][starty] = 0
-                self.garowall[startx][starty + 1] = 0
-                self.wallcnt -= 1
-                return ret
-
-            elif type == Wall.sero.value[0]:
-                self.wallcnt += 1
-                self.serowall[startx][starty] = self.wallcnt
-                self.serowall[startx + 1][starty] = self.wallcnt
-
-                if self.closed_bfs():
-                    ret = (-1, -1, -1)
-                else:
-                    ret = (type, startx, starty)
-                self.serowall[startx][starty] = 0
-                self.serowall[startx + 1][starty] = 0
-                self.wallcnt -= 1
-                return ret
-        else:
-            return (-1, -1, -1) #cross wall
-
-
+    
     def __str__(self):
         result = ""
 
