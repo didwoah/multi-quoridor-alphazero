@@ -2,7 +2,7 @@ import numpy as np
 import random as rd
 import math
 import copy
-from QuoridorAPI import State
+from game import State
 import time
 
 

@@ -1,9 +1,10 @@
 import math
-from QuoridorAPI import State
+from game import State
 import numpy as np
 import copy
 from model import resnet, DN_INPUT_SHAPE
 import torch
+from tqdm import tqdm
 
 PARENT_NODE_COUNT = 3
 PV_EVALUATE_COUNT = 1000
@@ -15,8 +16,6 @@ def predict(model, state: State):
     x = state.get_input_state()
     x =  torch.tensor(x, dtype=torch.float32)
     x = x.reshape(1, a, b, c)
-
-    print(x.shape)
 
     y = model(x)
 
@@ -97,7 +96,7 @@ def pv_mtcs_scores(model, state, temperature):
 
     root_node = Node(state)
 
-    for _ in range(PV_EVALUATE_COUNT):
+    for _ in tqdm(range(PV_EVALUATE_COUNT)):
         root_node.eval()
 
     scores = nodes_to_scores(root_node.child_nodes)
@@ -123,6 +122,7 @@ def boltzman(xs, temperature):
 if __name__ == '__main__':
 
     model  = resnet()
+    model.eval()
 
     state = State()
 

@@ -1,4 +1,4 @@
-from game import State
+from bin.game import State
 from example.pv_mtcs import pv_mcts_action
 from tensorflow.keras.models import load_model
 from tensorflow.keras import backend as K

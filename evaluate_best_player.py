@@ -1,4 +1,4 @@
-from QuoridorAPI import State
+from game import State
 import torch
 from model import resnet
 from pv_mcts import pv_mcts_action

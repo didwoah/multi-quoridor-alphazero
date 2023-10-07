@@ -6,7 +6,7 @@ import sys
 # sys.path.append("D:/Project/multi-quoridor-alphazero")
 sys.path.append("../")
 
-from QuoridorAPI import State
+from game import State
 import quoridor.huristic_evaluation as huristic_evaluation
 
 

@@ -1,4 +1,4 @@
-from QuoridorAPI import State
+from game import State
 from pv_mcts import pv_mtcs_scores
 from model import DN_OUTPUT_SIZE
 from datetime import datetime
