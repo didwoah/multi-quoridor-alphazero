@@ -3,6 +3,7 @@ import copy
 from collections import deque
 import random
 import time
+import numpy as np
 
 class Direction(Enum):
     Down = 0,
@@ -65,6 +66,39 @@ class State:
     
     def get_player(self):
         return self.turn % 4
+    
+    def get_input_state(self):
+        res = [ [ [0]*17 for _ in range(17) ] for _ in range(8) ]
+        print(len(res), len(res[0]), len(res[0][0]))
+        print(str(self))
+        currPlayer = self.get_player()
+        for i, idx in enumerate(range(0, 8, 2)):
+            tmpPlayer = self.player[(currPlayer + i) % 4]
+            row, col = self.rotate(currPlayer, tmpPlayer[0]*2, tmpPlayer[1]*2)
+            res[idx][row][col] = 1
+            for w in tmpPlayer[2]: #가로벽: 행*2+1,열*2
+                row, col = self.rotate(currPlayer, w[0]*2+1, w[1]*2)
+                res[idx+1][row][col] = 1
+                row, col = self.rotate(currPlayer, w[0]*2+1, w[1]*2+2)
+                res[idx+1][row][col] = 1
+            for w in tmpPlayer[3]: #세로벽: 행*2,열*2+1
+                row, col = self.rotate(currPlayer, w[0]*2, w[1]*2+1)
+                res[idx+1][row][col] = 1
+                row, col = self.rotate(currPlayer, w[0]*2+2, w[1]*2+1)
+                res[idx+1][row][col] = 1
+        return res
+        
+
+    def rotate(self, playerNum, row, col):
+        if playerNum == 0:
+            return row, col
+        elif playerNum == 1: #2번회전
+            return 16-row,16-col
+        elif playerNum == 2: #반시계
+            return 16-col,row
+        else: #playerNum == 3 #시계
+            return col,16-row
+
 
     def left_wall(self):
         count = len(self.player[self.turn % 4][2]) + \
