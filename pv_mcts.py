@@ -13,13 +13,13 @@ def predict(model, state: State):
 
     a, b, c = DN_INPUT_SHAPE
 
-    x = state.get_input_state()
+    x = state.get_input_state() # 회전한 input을 받는다
     x =  torch.tensor(x, dtype=torch.float32)
     x = x.reshape(1, a, b, c)
 
-    y = model(x)
+    y = model(x) 
 
-    polices = y[1][0][list(state.legal_actions(is_alpha_zero=True))]
+    polices = y[1][0][list(state.legal_actions(is_alpha_zero=True))] # 상대적 움직임에 대한 정책
     polices /= sum(polices) if sum(polices) else 1
     values = y[0][0]
     
@@ -133,8 +133,8 @@ if __name__ == '__main__':
         if state.is_done():
             break
 
-        action = next_action(state)
+        action = next_action(state) # 최적 상대적 움직임
 
-        state = state.next(action, is_alpha_zero=True)
+        state = state.next(action, is_alpha_zero=True) # 상대적 움직임에 대한 다음 상태
 
         print(state)
