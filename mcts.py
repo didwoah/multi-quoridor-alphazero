@@ -2,16 +2,18 @@ import numpy as np
 import random as rd
 import math
 import copy
-from QuoridorAPI import State
+from game import State
 import time
 
 
 PARENT_NODE_COUNT = 3
-SIMULATION_COUNT = 100
+PV_EVALUATE_COUNT = 1000
 
 
 def random_action(state):
     legal_actions = state.legal_actions()
+    if len(legal_actions) == 0:
+        return None
     return legal_actions[rd.randint(0, len(legal_actions) - 1)]
 
 def playout(state):
@@ -55,8 +57,11 @@ def mcts_action(state):
 
             return self.child_nodes[argmax(ucb1_values)]
 
-        def expand(self):
-            self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions() ]
+        def expand(self, legal_actions = None):
+            if not legal_actions:
+                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions() ]
+            else:
+                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in legal_actions ]
         
         def eval(self):
             if self.state.is_done():
@@ -88,14 +93,16 @@ def mcts_action(state):
 
                 return child_scores
 
+    legal_actions = state.legal_actions()
+    if len(legal_actions) == 0:
+        return None
             
     root_node = Node(state)
-    root_node.expand()
+    root_node.expand(legal_actions)
 
-    for _ in range(SIMULATION_COUNT):
+    for _ in range(PV_EVALUATE_COUNT):
         root_node.eval()
 
-    legal_actions = state.legal_actions()
     n_list = []
     for c in root_node.child_nodes:
         n_list.append(c.n)

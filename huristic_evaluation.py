@@ -2,7 +2,7 @@ from collections import deque
 import copy
 
 from max_n import MyState
-from QuoridorAPI import Direction
+from game import Direction
 
 E = 1
 # 7 1 5 1

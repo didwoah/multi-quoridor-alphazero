@@ -1,51 +1,81 @@
-from dual_network import DN_INPUT_SHAPE
-from tensorflow.keras.callbacks import LearningRateScheduler, LambdaCallback
-from tensorflow.keras.models import load_model
-from tensorflow.keras import backend as K
-from pathlib import Path
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 import pickle
+from pathlib import Path
+from model import DN_INPUT_SHAPE, resnet
 
 RN_EPOCHS = 100
+a, b, c = DN_INPUT_SHAPE
 
 def load_data():
     history_path = sorted(Path('./data').glob('*.history'))[-1]
     with history_path.open(mode='rb') as f:
         return pickle.load(f)
-    
-def train_network():
 
+def step_decay(epoch):
+    x = 0.001
+    if epoch >= 50:
+        x = 0.0005
+    if epoch >= 80:
+        x = 0.00025
+    return x
+
+def train_network():
     history = load_data()
     xs, y_polices, y_values = zip(*history)
 
-    a, b, c = DN_INPUT_SHAPE
     xs = np.array(xs)
     xs = xs.reshape(len(xs), c, a, b).transpose(0, 2, 3, 1)
     y_polices = np.array(y_polices)
     y_values = np.array(y_values)
 
-    model = load_model('./model/best.h5')
-
-    model.compile(loss = ['categorical_crossentropy', 'mse'], optimizer = 'adam')
-
-    def step_decay(epoch):
-        x = 0.001
-        if epoch >= 50: x = 0.0005
-        if epoch >= 80: x = 0.00025
-        return x
+    # Create an instance of your PyTorch model and load the model checkpoint
+    model = resnet()
+    model.load_state_dict(torch.load('your_model_checkpoint.pth'))
+    model.train()  # Set the model to evaluation mode
     
-    lr_decay = LearningRateScheduler(step_decay)
+    # Define the loss functions and optimizer
+    criterion_policy = nn.CrossEntropyLoss()
+    criterion_value = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters())
 
-    print_callback = LambdaCallback(
-        on_epoch_begin = lambda epoch, logs: print('\rTrain {}/{}'.format(epoch + 1, RN_EPOCHS), end='')
-    )
+    # Create a learning rate scheduler
+    lr_scheduler = LambdaLR(optimizer, lr_lambda=step_decay)
 
-    model.fit(xs, [y_polices, y_values], batch_size = 128, epochs=RN_EPOCHS, verbose = 0, callbacks = [lr_decay, print_callback])
+    num_epochs = RN_EPOCHS
 
-    model.save('./model/latest.h5')
+    for epoch in range(num_epochs):
+        print(f"Train {epoch + 1}/{num_epochs}", end='')
+        
+        # Convert data to PyTorch tensors
+        xs_tensor = torch.tensor(xs, dtype=torch.float32)
+        y_polices_tensor = torch.tensor(y_polices, dtype=torch.long)
+        y_values_tensor = torch.tensor(y_values, dtype=torch.float32)
 
-    K.clear_session()
-    del model
+        # Zero the gradients
+        optimizer.zero_grad()
+
+        # Forward pass
+        policy_output, value_output = model(xs_tensor)
+
+        # Calculate losses
+        loss_policy = criterion_policy(policy_output, y_polices_tensor)
+        loss_value = criterion_value(value_output, y_values_tensor)
+
+        # Total loss
+        loss = loss_policy + loss_value
+
+        # Backpropagation
+        loss.backward()
+        optimizer.step()
+
+        print('\rTrain {}/{} - Loss: {:.4f}'.format(epoch + 1, num_epochs, loss.item()), end='')
+
+    # Save the trained model
+    torch.save(model.state_dict(), './model/latest.pth')
 
 if __name__ == '__main__':
     train_network()
