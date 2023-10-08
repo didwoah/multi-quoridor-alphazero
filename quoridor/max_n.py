@@ -184,7 +184,7 @@ if __name__ == "__main__":
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, bot_play, p=False)
+            now_state = play(now_state, random_play, p=False)
             
         # print(f"\n{now_state.winner()} win!\n")
         
