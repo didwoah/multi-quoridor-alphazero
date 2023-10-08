@@ -7,7 +7,7 @@ import sys
 sys.path.append("../")
 
 from game import State
-import quoridor.huristic_evaluation as huristic_evaluation
+import huristic_evaluation as huristic_evaluation
 
 
 class MyState(State):
