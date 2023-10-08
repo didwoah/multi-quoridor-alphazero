@@ -37,13 +37,14 @@ def argmax(collection, key=None):
 def pv_mtcs_scores(model, state, temperature):
     class Node:
         def __init__(self, state):
-            self.state = state
+            self.state = copy.deepcopy(state)
             self.n = 0
             self.scores = [0,0,0,0]
             self.child_nodes = None
 
-        def get_w(self):
-            return self.scores[self.state.get_player()]
+        def get_parent_score(self):
+            parent_turn = (self.state.get_player() + 3) % 4
+            return self.scores[parent_turn]
 
         def next_child_node(self):
             for child_node in self.child_nodes:
@@ -55,15 +56,15 @@ def pv_mtcs_scores(model, state, temperature):
                 t += c.n
             ucb1_values = []
             for child_node in self.child_nodes:
-                ucb1_values.append(child_node.get_w() / child_node.n + (2 * math.log(t) / child_node.n) ** 0.5)
+                ucb1_values.append(child_node.get_parent_score() / child_node.n + (2 * math.log(t) / child_node.n) ** 0.5)
 
             return self.child_nodes[argmax(ucb1_values)]
 
         def expand(self, legal_actions = None):
             if not legal_actions:
-                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions(True) ]
+                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action, True)) for action in self.state.legal_actions(True) ]
             else:
-                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in legal_actions ]
+                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action, True)) for action in legal_actions ]
         
         def eval(self):
             if self.state.is_done():
@@ -84,7 +85,9 @@ def pv_mtcs_scores(model, state, temperature):
                     self.expand()
                 return self.scores
             else:
-                child_scores = self.next_child_node().eval()
+                ncn = self.next_child_node()
+                # print("c",ncn.state.player)
+                child_scores = ncn.eval()
 
                 player = self.state.get_player()
 
@@ -97,6 +100,7 @@ def pv_mtcs_scores(model, state, temperature):
     root_node = Node(state)
 
     for _ in tqdm(range(PV_EVALUATE_COUNT)):
+        # print(root_node.state.player)
         root_node.eval()
 
     scores = nodes_to_scores(root_node.child_nodes)

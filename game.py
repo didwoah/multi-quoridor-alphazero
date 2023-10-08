@@ -42,7 +42,7 @@ class State:
     def __init__(self, player=player_info, turn=None):
         # turn 0, 1, 2, 3
         # none일 경우 없다고 가정
-        self.player = player
+        self.player = [[copy.deepcopy(x) for x in p] for p in player]
         self.turn = turn if turn != None else 0
         self.wallcnt = 0  # 필요함.. 교차되는 것 검증할때 벽 num
         self.board = [[0 for _ in range(9)] for _ in range(9)]
@@ -76,11 +76,13 @@ class State:
             tmpPlayer = self.player[(currPlayer + i) % 4]
             row, col = self.rotate17(currPlayer, tmpPlayer[0]*2, tmpPlayer[1]*2)
 
-            try:
-                res[idx][row][col] = 1
-            except IndexError:
-                print("인덱스 오류: 인덱스가 범위를 벗어났습니다.")
-                print(idx, row, col)
+            # try:
+            res[idx][row][col] = 1
+            # except IndexError:
+            #     print("인덱스 오류: 인덱스가 범위를 벗어났습니다.")
+            #     print(self.player)
+            #     print(tmpPlayer[0], tmpPlayer[1])
+            #     print(idx, row, col)
             
             for w in tmpPlayer[2]: #가로벽: 행*2+1,열*2
                 row, col = self.rotate17(currPlayer, w[0]*2+1, w[1]*2)
@@ -138,7 +140,8 @@ class State:
         return self.winner() != -1
     
     def action_mapping_rel2abs(self, turn, action_number):
-        if turn == 0:
+        t = turn % 4
+        if t == 0:
             return action_number
         
         push_list = [0,4,6,2]
@@ -146,48 +149,59 @@ class State:
         action_list = [0,4,1,6,2,7,3,5]
         
         if action_number < 8:
-            return action_list[(idx_list[action_number] + push_list[turn]) % 8]
+            return action_list[(idx_list[action_number] + push_list[t]) % 8]
                 
         else:
             wall_type = action_number // 72 + 1
             r, c = self.number_to_coordinate(action_number, wall_type)
-            r, c = self.rotate8(turn, r, c)
-            if turn != 1:
+            r, c = self.rotate8(t, r, c)
+            if t != 1:
                 wall_type = (wall_type % 2) + 1
             return self.coordinate_to_number(r, c, wall_type)
 
 
     def next(self, action, is_alpha_zero=False):
 
+        next_player = [[copy.deepcopy(x) for x in p] for p in self.player]
+
         if action == None:
-            self.turn += 1
-            return State(self.player, self.turn)
+            return State(next_player, self.turn + 1)
         
         if is_alpha_zero:
+            pre_action = action
             action = self.action_mapping_rel2abs(self.get_player(), action)
+            # try:
+            #     if action not in self.legal_actions():
+            #         raise IndexError
+            # except(IndexError):
+            #     print("매핑오류", pre_action, action)
         
-        p = self.player[self.get_player()]
-        
-        if (action < 4):
-            if (self.can_go(action, p[0], p[1], p[0] + dr[action], p[1] + dc[action])):
-                dir = action
-            else:
-                dir = action + 8
-            p[0], p[1] = p[0] + dr[dir], p[1] + dc[dir]
+        p = next_player[self.get_player()]
+        try:
+            if (action < 4):
+                if (self.can_go(action, p[0], p[1], p[0] + dr[action], p[1] + dc[action])):
+                    dir = action
+                else:
+                    dir = action + 8
+                p[0], p[1] = p[0] + dr[dir], p[1] + dc[dir]
 
-        elif (action < 8):
-            p[0], p[1] = p[0] + dr[action], p[1] + dc[action]
+            elif (action < 8):
+                p[0], p[1] = p[0] + dr[action], p[1] + dc[action]
 
-        elif (action < 72):
-            r, c = self.number_to_coordinate(action, Wall.garo.value[0])
-            p[2].append((r, c))
+            elif (action < 72):
+                r, c = self.number_to_coordinate(action, Wall.garo.value[0])
+                p[2].append((r, c))
 
-        elif (action < 136):
-            r, c = self.number_to_coordinate(action, Wall.sero.value[0])
-            p[3].append((r, c))
+            elif (action < 136):
+                r, c = self.number_to_coordinate(action, Wall.sero.value[0])
+                p[3].append((r, c))
+        except:
+            print(self.turn)
+            print(p[0], p[1])
+            print(p[0] + dr[action], p[1] + dc[action])
+            print(action)
 
-        self.turn += 1
-        return State(self.player, self.turn)
+        return State(next_player, self.turn + 1)
 
     def legal_actions(self, is_alpha_zero = False):
         actions = []
@@ -235,7 +249,7 @@ class State:
 
     def action_mapping_abs2rel(self, turn, action_number):
         turn_shift_list = [0, 1, 3, 2]
-        return self.action_mapping_rel2abs(turn_shift_list[turn], action_number)
+        return self.action_mapping_rel2abs(turn_shift_list[turn % 4], action_number)
 
     def can_go(self, direction, r, c, nr, nc):
         if direction == Direction.Down.value[0]:
@@ -374,11 +388,11 @@ class State:
         if turn == 0:
             return r, c
         elif turn == 1:
-            return 7-r-1, 7-c-1
+            return 8-r-1, 8-c-1
         elif turn == 2:
-            return c, 7-r-1
+            return c, 8-r-1
         elif turn == 3:
-            return 7-c-1, r
+            return 8-c-1, r
 
     def canReachEnd(self, idx):
         if (self.is_done()):
@@ -490,7 +504,7 @@ class State:
                     result += "|"
             result += str(self.board[i][8]) + "\n"
 
-            for j in range(8):
+            for j in range(9):
                 if self.garowall[i][j] == 0:
                     result += "  "
                 else:

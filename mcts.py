@@ -40,8 +40,9 @@ def mcts_action(state):
             self.scores = [0,0,0,0]
             self.child_nodes = None
 
-        def get_w(self):
-            return self.scores[self.state.get_player()]
+        def get_parent_score(self):
+            parent_turn = (self.state.get_player() + 3) % 4
+            return self.scores[parent_turn]
 
         def next_child_node(self):
             for child_node in self.child_nodes:
@@ -53,7 +54,7 @@ def mcts_action(state):
                 t += c.n
             ucb1_values = []
             for child_node in self.child_nodes:
-                ucb1_values.append(child_node.get_w() / child_node.n + (2 * math.log(t) / child_node.n) ** 0.5)
+                ucb1_values.append(child_node.get_parent_score() / child_node.n + (2 * math.log(t) / child_node.n) ** 0.5)
 
             return self.child_nodes[argmax(ucb1_values)]
 
