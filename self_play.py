@@ -1,10 +1,11 @@
 from game import State
 from pv_mcts import pv_mtcs_scores
-from model import DN_OUTPUT_SIZE
+from model import DN_OUTPUT_SIZE, resnet
 from datetime import datetime
 import numpy as np
 import pickle
 import os
+import torch
 
 SP_GAME_COUNT = 10
 SP_TEMPERATURE = 1.0
@@ -47,7 +48,7 @@ def play(model):
         history[i][2] = values
     return history
 
-def self_play():
+def self_play(model):
     history = []
 
     for i in range(SP_GAME_COUNT):
@@ -61,4 +62,7 @@ def self_play():
     del model
 
 if __name__ == '__main__':
-    self_play()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
+    model = resnet().to(device)
+    self_play(model)

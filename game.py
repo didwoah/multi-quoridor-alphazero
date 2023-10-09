@@ -76,13 +76,14 @@ class State:
             tmpPlayer = self.player[(currPlayer + i) % 4]
             row, col = self.rotate17(currPlayer, tmpPlayer[0]*2, tmpPlayer[1]*2)
 
-            # try:
-            res[idx][row][col] = 1
-            # except IndexError:
-            #     print("인덱스 오류: 인덱스가 범위를 벗어났습니다.")
-            #     print(self.player)
-            #     print(tmpPlayer[0], tmpPlayer[1])
-            #     print(idx, row, col)
+            try:
+                res[idx][row][col] = 1
+            except IndexError:
+                print(f'row는 {row}, col은 {col}입니다')
+                print("인덱스 오류: 인덱스가 범위를 벗어났습니다.")
+                print(self.player)
+                print(tmpPlayer[0], tmpPlayer[1])
+                print(idx, row, col)
             
             for w in tmpPlayer[2]: #가로벽: 행*2+1,열*2
                 row, col = self.rotate17(currPlayer, w[0]*2+1, w[1]*2)
@@ -167,14 +168,9 @@ class State:
         if action == None:
             return State(next_player, self.turn + 1)
         
+        pre_action = action
         if is_alpha_zero:
-            pre_action = action
             action = self.action_mapping_rel2abs(self.get_player(), action)
-            # try:
-            #     if action not in self.legal_actions():
-            #         raise IndexError
-            # except(IndexError):
-            #     print("매핑오류", pre_action, action)
         
         p = next_player[self.get_player()]
         try:
@@ -195,11 +191,23 @@ class State:
             elif (action < 136):
                 r, c = self.number_to_coordinate(action, Wall.sero.value[0])
                 p[3].append((r, c))
-        except:
+            
+            if not self.is_range(p[0],p[1]):
+                raise ValueError
+        except(ValueError):
             print(self.turn)
+            print(self.get_player())
+            print(self.player[self.get_player()][0], self.player[self.get_player()][1])
             print(p[0], p[1])
-            print(p[0] + dr[action], p[1] + dc[action])
+            print(pre_action)
             print(action)
+            print(is_alpha_zero)
+            print(self.legal_actions())
+            print(self.legal_actions(is_alpha_zero))
+            print(self)
+            sys.exit()
+        except:
+            print("something wrong....")
 
         return State(next_player, self.turn + 1)
 
@@ -219,6 +227,9 @@ class State:
                         actions.append(direction)
         actions.sort()
         if (self.left_wall() <= 0):
+            if is_alpha_zero:
+                actions = [self.action_mapping_abs2rel(self.turn, a) for a in actions]
+                actions = sorted(actions)
             return actions
         for a in range(8, 136):
             if a < 72:

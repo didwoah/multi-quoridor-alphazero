@@ -17,6 +17,8 @@ def predict(model, state: State):
     x =  torch.tensor(x, dtype=torch.float32)
     x = x.reshape(1, a, b, c)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    x = x.to(device)
     y = model(x) 
 
     polices = y[1][0][list(state.legal_actions(is_alpha_zero=True))] # 상대적 움직임에 대한 정책
@@ -72,6 +74,7 @@ def pv_mtcs_scores(model, state, temperature):
                     self.scores = [0.25 for _ in range(4)]
                 else:
                     winner = self.state.winner()
+                    self.scores = [0 for _ in range(4)]
                     self.scores[winner] += 1
                 return self.scores
 
