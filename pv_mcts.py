@@ -107,7 +107,7 @@ def pv_mtcs_scores(model, state, temperature):
         root_node.eval()
 
     scores = nodes_to_scores(root_node.child_nodes)
-    if temperature == 0:
+    if temperature < 0.001:
         action = np.argmax(scores)
         scores = np.zeros(len(scores))
         scores[action] = 1
