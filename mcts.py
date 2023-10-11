@@ -4,7 +4,7 @@ import math
 import copy
 from game import State
 import time
-# from tqdm import tqdm
+from tqdm import tqdm
 
 
 PARENT_NODE_COUNT = 3
@@ -22,9 +22,9 @@ def playout(state):
     if state.is_done():
 
         if state.is_draw():
-            return [0.25 for _ in range(4)]
+            return [0 for _ in range(4)]
         
-        rlst = [0] * 4
+        rlst = [-1] * 4
         rlst[state.winner()] = 1
         return rlst
     
@@ -68,13 +68,7 @@ def mcts_action(state):
         def eval(self):
             if self.state.is_done():
 
-                scores = [0.25] * 4
-
-                if not self.state.is_draw():
-                    winner = self.state.winner()
-                    scores = [0] * 4
-                    scores[winner] = 1
-
+                scores = playout(self.state)
                 self.scores = [self.scores[i] + scores[i] for i in range(4)]
                 self.n += 1
 
@@ -111,7 +105,7 @@ def mcts_action(state):
     root_node = Node(state)
     root_node.expand(legal_actions)
 
-    for _ in range(PV_EVALUATE_COUNT):
+    for _ in tqdm(range(PV_EVALUATE_COUNT)):
         root_node.eval()
 
     n_list = []
