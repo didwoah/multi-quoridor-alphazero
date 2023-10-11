@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch
 from torchsummary import summary
+from torchviz import make_dot
+from game import State
 
 DN_RESIDUAL_NUM = 16
 DN_INPUT_SHAPE = (8, 17, 17) # player 1 말위치 + player 1이 놓은 벽
@@ -99,4 +101,15 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     model = resnet().to(device)
-    summary(model, DN_INPUT_SHAPE, device=device.type)
+    # summary(model, DN_INPUT_SHAPE, device=device.type)
+
+    state = State()
+    a, b, c = DN_INPUT_SHAPE
+
+    x = state.get_input_state() # 회전한 input을 받는다
+    x =  torch.tensor(x, dtype=torch.float32)
+    x = x.reshape(1, a, b, c)
+
+    pred = model(x) 
+
+    make_dot(pred, params=dict(model.named_parameters())).render("model_graph", format="png")
