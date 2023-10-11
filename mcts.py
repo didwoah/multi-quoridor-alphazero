@@ -4,6 +4,7 @@ import math
 import copy
 from game import State
 import time
+# from tqdm import tqdm
 
 
 PARENT_NODE_COUNT = 3
@@ -24,12 +25,12 @@ def playout(state):
             return [0.25 for _ in range(4)]
         
         rlst = [0] * 4
-        rlst[state.winner()] += 1
+        rlst[state.winner()] = 1
         return rlst
     
     return playout(state.next(random_action(state)))
 
-def argmax(collection, key=None):
+def argmax(collection):
     return collection.index(max(collection))
 
 def mcts_action(state):
@@ -60,38 +61,47 @@ def mcts_action(state):
 
         def expand(self, legal_actions = None):
             if not legal_actions:
-                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in self.state.legal_actions() ]
+                self.child_nodes = [ Node(self.state.next(action)) for action in self.state.legal_actions() ]
             else:
-                self.child_nodes = [ Node(copy.deepcopy(self.state).next(action)) for action in legal_actions ]
+                self.child_nodes = [ Node(self.state.next(action)) for action in legal_actions ]
         
         def eval(self):
             if self.state.is_done():
-                if self.state.is_draw():
-                    self.scores = [0.25 for _ in range(4)]
-                else:
+
+                scores = [0.25] * 4
+
+                if not self.state.is_draw():
                     winner = self.state.winner()
-                    self.scores[winner] += 1
-                return self.scores
+                    scores = [0] * 4
+                    scores[winner] = 1
 
-            if not self.child_nodes:
-                s = copy.deepcopy(self.state)
-                values = playout(s)
-                self.scores = [self.scores[i] + values[i] for i in range(4)]
-
+                self.scores = [self.scores[i] + scores[i] for i in range(4)]
                 self.n += 1
 
-                if self.n == 10:
+                return scores
+            if not self.child_nodes:
+
+                scores = playout(self.state)
+                self.scores = [self.scores[i] + scores[i] for i in range(4)]
+                self.n += 1
+
+                if self.n == PARENT_NODE_COUNT:
                     self.expand()
-                return self.scores
+
+                # note
+                # return self.scores
+                return scores
             else:
                 child_scores = self.next_child_node().eval()
 
-                player = self.state.get_player()
+                # note
+                # self.scores가 조금 더 잘 바뀌려면 졌을 때 -1을 해줘야할 수도 있음 실험 예정
+                # player = self.state.get_player()
+                # if self.scores[player] < child_scores[player]:
+                #     self.scores = child_scores
 
-                if self.scores[player] < child_scores[player]:
-                    self.scores = child_scores
+                self.scores = [self.scores[i] + child_scores[i] for i in range(4)]
                 self.n += 1
-
                 return child_scores
 
     legal_actions = state.legal_actions()
@@ -120,14 +130,8 @@ def play(next_actions):
         if state.is_done():
             break
 
-        # print(state)
-        start = time.time()
         next_action = next_actions[state.get_player()]
         action = next_action(state)
-        end = time.time()
-        print('cost : {}'.format(end-start))
-
-
         state = state.next(action)
 
     if state.is_draw():
@@ -138,7 +142,10 @@ def play(next_actions):
     return rlst
 
 def change_turn(collection):
-    return collection[1:] , collection[0]
+    rlst = []
+    rlst.extend(collection[1:])
+    rlst.extend([collection[0]])
+    return rlst
 
 def evaluate_algorithm_of(label, next_actions):
 
@@ -146,14 +153,12 @@ def evaluate_algorithm_of(label, next_actions):
 
     for i in range(EP_GANE_COUNT):
         total_point += play(next_actions)[i % 4]
-        change_turn(next_actions)
-
-        print('\rEvaluate {}/{}'.format(i+1, EP_GANE_COUNT), end='')
-    print('')
+        next_actions = change_turn(next_actions)
 
     average_point = total_point / EP_GANE_COUNT
+    print('')
     print(label.format(average_point))
 
 if __name__ == '__main__':
-    next_actions = (mcts_action, random_action, random_action, random_action)
+    next_actions = [mcts_action, random_action, random_action, random_action]
     evaluate_algorithm_of('VS_RANDOM {:3f}', next_actions)

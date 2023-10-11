@@ -64,7 +64,7 @@ class State:
                 self.serowall[v[0]+1][v[1]] = self.wallcnt
 
     def is_draw(self):
-        return self.draw_flag
+        return self.turn > 300
     
     def get_player(self):
         return self.turn % 4
@@ -135,10 +135,7 @@ class State:
             return -1
 
     def is_done(self):
-        if self.turn > 248:
-            self.draw_flag = True
-            return True
-        return self.winner() != -1
+        return self.is_draw() or self.winner() != -1
     
     def action_mapping_rel2abs(self, turn, action_number):
         t = turn % 4
