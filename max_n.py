@@ -117,15 +117,20 @@ def random_play(state: MyState, p=True):
     return random.choice(state.generate_states())
 
 def max_n_action(state: MyState, p=True):
+
+    legal_actions = state.legal_actions()
+    if len(legal_actions) == 0:
+        return None
+    
     if p:
         print("max_n play")
 
-    if state.turn < 30:
+    if state.turn < 16:
         depth = 1
-    elif state.turn < 50:
-        depth = 2
-    else:
+    elif state.turn < 32:
         depth = 3
+    else:
+        depth = 5
     values, next_state = max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
 
     if p:
@@ -169,23 +174,26 @@ if __name__ == "__main__":
     time_list = []
     r = 100
     wc = [0, 0, 0, 0, 0]
+    actions = [brain.brain1, brain.brain2, brain.brain3, max_n_action]
     for i in range(r):
         now_state= MyState()
         
         while(not now_state.is_end()):
-            now_state = play(now_state, brain.brain1, p=False)
+            now_state = play(now_state, actions[0], p=False)
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, brain.brain2, p=False)
+            now_state = play(now_state, actions[1], p=False)
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, brain.brain3, p=False)
+            now_state = play(now_state, actions[2], p=False)
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, max_n_action, p=False)
+            now_state = play(now_state, actions[3], p=False)
+
+        actions = actions[1:] + [actions[0]]
             
         # print(f"\n{now_state.winner()} win!\n")
         

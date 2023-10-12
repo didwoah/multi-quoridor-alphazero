@@ -35,6 +35,7 @@ from max_n import MyState
 
 
 def brain1(state: MyState, p = True):
+
     que = deque()
     check = [[0 for _ in range(9)] for _ in range(9)]
     turn = state.get_player()
@@ -67,18 +68,18 @@ def brain1(state: MyState, p = True):
             nr, nc = qr + api.dr[i], qc + api.dc[i]
             if state.is_range(nr, nc):
                 if check[nr][nc] == 0:
+                    if state.can_go(i, qr, qc, nr, nc):
+                        que.append((nr, nc, dir))
+                        check[nr][nc] = 1
                     for player in state.player: #건너뛰는게 더 빠르다 이경우를 큐에 못넣으면 끝에 도달 못하는 경우 생긴다
                         #ex
                         # - -------
                         # 12
                         # 1이 가려면 2를 뛰어넘고 오른쪽 밖에 못가서 끝에는 도달 못하지만 갇힌 것은 아니다.
-                        
                         if nr == player[0] and nc == player[1]:
                             que.append((nr,nc,dir))
-                    if state.can_go(i, qr, qc, nr, nc):
-                        que.append((nr, nc, dir))
-                        check[nr][nc] = 1
-    
+    if direction == -1:
+        return None
     if (direction > 7):
         direction = direction -8
     return MyState(copy.deepcopy(state).next(direction))
@@ -106,6 +107,9 @@ def min_distance(state: MyState, pivotr, pivotc, way, destination):
             nr, nc = r + api.dr[i], c + api.dc[i]
             if state.is_range(nr, nc):
                 if check[nr][nc] == 0:
+                    if state.can_go(i, r, c, nr, nc):
+                        que.append((nr, nc))
+                        check[nr][nc] = check[r][c] + 1
                     for player in state.player: #건너뛰는게 더 빠르다 이경우를 큐에 못넣으면 끝에 도달 못하는 경우 생긴다
                         #ex
                         # - -------
@@ -114,9 +118,6 @@ def min_distance(state: MyState, pivotr, pivotc, way, destination):
                         if nr == player[0] and nc == player[1]:
                             que.append((nr,nc))
                             check[nr][nc] = check[r][c] + 1
-                    if state.can_go(i, r, c, nr, nc):
-                        que.append((nr, nc))
-                        check[nr][nc] = check[r][c] + 1
     
     print('뭔가 ㅈ됨')
 
