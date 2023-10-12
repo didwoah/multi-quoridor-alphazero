@@ -9,7 +9,6 @@ sys.path.append("../")
 from game import State
 import huristic_evaluation as huristic_evaluation
 
-
 class MyState(State):
     def __init__(self, state=None):
         if state == None:
@@ -31,6 +30,8 @@ class MyState(State):
         count = len(self.player[turn][2]) + \
             len(self.player[turn][3])
         return 5 - count
+    
+import brain
     
 
 def max_n(now_state: MyState, depth):
@@ -172,15 +173,15 @@ if __name__ == "__main__":
         now_state= MyState()
         
         while(not now_state.is_end()):
-            now_state = play(now_state, random_play, p=False)
+            now_state = play(now_state, brain.brain1, p=False)
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, max_n_action, p=False)
+            now_state = play(now_state, brain.brain2, p=False)
             if now_state.is_end():
                 break
 
-            now_state = play(now_state, random_play, p=False)
+            now_state = play(now_state, brain.brain3, p=False)
             if now_state.is_end():
                 break
 
