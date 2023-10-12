@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch
 from torchsummary import summary
-from torchviz import make_dot
 from game import State
 
 DN_RESIDUAL_NUM = 16
@@ -112,4 +111,4 @@ if __name__ == '__main__':
 
     pred = model(x) 
 
-    make_dot(pred, params=dict(model.named_parameters())).render("model_graph", format="png")
+    # make_dot(pred, params=dict(model.named_parameters())).render("model_graph", format="png")
