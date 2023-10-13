@@ -1,8 +1,8 @@
 from collections import deque
 import copy
 
-from max_n import MyState
 from game import Direction
+from game import State
 
 E = 1
 # 7 1 5 1
@@ -11,7 +11,7 @@ E = 1
 # 1 13 1.8 13
 # 28.8
 # 
-def huristic_1(state: MyState):
+def huristic_1(state: State):
     c0 = left_way(state, 0)
     c1 = left_way(state, 1)
     c2 = left_way(state, 2)
@@ -55,7 +55,7 @@ def huristic_1(state: MyState):
 
     return m0 / total_m, m1 / total_m, m2 / total_m, m3 / total_m
     
-def huristic_2(state: MyState):
+def huristic_2(state: State):
     c0 = left_way(state, 0)
     c1 = left_way(state, 1)
     c2 = left_way(state, 2)
@@ -72,7 +72,7 @@ def huristic_2(state: MyState):
 
     return c0 / total_c, c1 / total_c, c2 / total_c, c3 / total_c
 
-def huristic_3(state: MyState):
+def huristic_3(state: State):
     c0 = 8-state.player[0].r
     c1 = state.player[1].r
     c2 = state.player[2].c
@@ -109,7 +109,7 @@ def huristic_3(state: MyState):
 
     return e0 / total_e, e1 / total_e, e2 / total_e, e3 / total_e
     
-def huristic_4(state: MyState):
+def huristic_4(state: State):
     c0 = 8-state.player[0][0]
     c1 = state.player[1][0]
     c2 = state.player[2][1]
@@ -125,7 +125,7 @@ def huristic_4(state: MyState):
 
     return e0 / total_e, e1 / total_e, e2 / total_e, e3 / total_e
 
-def huristic_5(state: MyState):
+def huristic_5(state: State):
     state = copy.deepcopy(state)
 
     c0 = 81-left_way(state, 0)

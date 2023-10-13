@@ -29,6 +29,8 @@ def predict(model, state: State):
 
     player = state.get_player()
     values = torch.concat((values[4-player:], values[:4-player]), dim=0) # 0 1 2 3
+
+    del x
     
     return polices, values
 
