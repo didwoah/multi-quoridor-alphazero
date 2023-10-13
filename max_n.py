@@ -120,7 +120,7 @@ def max_n_action(state: MyState, p=True):
 
     legal_actions = state.legal_actions()
     if len(legal_actions) == 0:
-        return None
+        return state.next(None)
     
     if p:
         print("max_n play")

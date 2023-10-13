@@ -9,32 +9,9 @@ sys.path.append("C:/Users/user/Desktop/Project/Quorido/multi-quoridor-alphazero"
 from game import State
 import game as api
 
-from max_n import MyState
 
 
-# class MyState(State):
-#     def __init__(self, state=None):
-#         if state == None:
-#             super().__init__()
-#         else:
-#             super().__init__(state.player, state.turn)
-
-#     def is_end(self):
-#         return self.is_done()
-    
-#     def generate_states(self):
-#         actions = self.legal_actions()
-#         return [MyState(copy.deepcopy(self).next(action)) for action in actions]
-    
-#     def get_left_wall(self, turn):
-#         count = len(self.player[turn][2]) + \
-#             len(self.player[turn][3])
-#         return 5 - count
-    
-
-
-
-def brain1(state: MyState, p = True):
+def brain1(state: State, p = True):
 
     que = deque()
     check = [[0 for _ in range(9)] for _ in range(9)]
@@ -79,19 +56,19 @@ def brain1(state: MyState, p = True):
                         if nr == player[0] and nc == player[1]:
                             que.append((nr,nc,dir))
     if direction == -1:
-        return None
+        return state.next(None)
     if (direction > 7):
         direction = direction -8
-    return MyState(copy.deepcopy(state).next(direction))
+    return State(copy.deepcopy(state).next(direction))
 
-def brain2(state: MyState, p = True):
+def brain2(state: State, p = True):
     if state.left_wall() > 0:
         random_element = random.choice(state.legal_walls())
-        return MyState(copy.deepcopy(state).next(random_element))
+        return State(copy.deepcopy(state).next(random_element))
     else :
         return brain1(state, p)
 
-def min_distance(state: MyState, pivotr, pivotc, way, destination):
+def min_distance(state: State, pivotr, pivotc, way, destination):
     que = deque()
     check = [[0 for _ in range(9)] for _ in range(9)]
     turn = state.get_player()
@@ -121,7 +98,7 @@ def min_distance(state: MyState, pivotr, pivotc, way, destination):
     
     print('뭔가 ㅈ됨')
 
-def get_pivot(state: MyState):
+def get_pivot(state: State):
     sum = 0
     for turn in range(4):
         if turn == 0:
@@ -139,7 +116,7 @@ def get_pivot(state: MyState):
             sum = sum + min_distance(state, state.player[turn][0],state.player[turn][1], way, en)
     return sum
 
-def brain3_walling(state: MyState, type, startx, starty, mean):
+def brain3_walling(state: State, type, startx, starty, mean):
         ret = (-1, -1, -1, mean)
         if not state.crossWall(type, startx, starty):
             if type == 1:
@@ -174,7 +151,7 @@ def brain3_walling(state: MyState, type, startx, starty, mean):
         else:
             return (-1, -1, -1, mean) #cross wall
         
-def brain3walling(state:MyState):
+def brain3walling(state:State):
     mean = get_pivot(state)
     temp = mean
     for type in range(1,3):
@@ -190,16 +167,16 @@ def brain3walling(state:MyState):
     else:
         return -1
 
-def brain3(state: MyState, p = True):
+def brain3(state: State, p = True):
     if state.left_wall() > 0:
         action = brain3walling(state)
         if action == -1:
             return brain1(state, p)
-        return MyState(copy.deepcopy(state).next(action))
+        return State(copy.deepcopy(state).next(action))
     else :
         return brain1(state, p)
 
-# def bot_play(state: MyState, brainType):
+# def bot_play(state: State, brainType):
 #     if brainType == 1:
 #         return brain1(state)   
 #     elif brainType == 2:
@@ -207,18 +184,18 @@ def brain3(state: MyState, p = True):
 #     elif brainType == 3:
 #         return brain3(state)
 
-def person_play(state: MyState):
+def person_play(state: State):
     print(f"legal actions: {state.legal_actions()}")
     action = int(input("action: "))
-    return MyState(state.next(action))
+    return State(state.next(action))
 
-def random_play(state: MyState, p=True):
+def random_play(state: State, p=True):
     if p:
         print("random play")
 
     return random.choice(state.generate_states())
 
-def play(state: MyState, player, time_list = None, p = True):
+def play(state: State, player, time_list = None, p = True):
     state = copy.deepcopy(state)
 
     if p:
@@ -245,7 +222,7 @@ if __name__ == "__main__":
     r = 100
     wc = [0, 0, 0, 0, 0]
     for i in range(r):
-        now_state= MyState()
+        now_state= State()
         
         while(not now_state.is_end()):
             now_state = play(now_state, brain1, p= False)
@@ -280,7 +257,7 @@ if __name__ == "__main__":
 
         print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", flush=True)
 
-        # now_state= MyState()
+        # now_state= State()
         # brainType = 1
 
         # print(str(now_state), end='')
@@ -312,7 +289,7 @@ if __name__ == "__main__":
         #     count += 1
         # print(f"\nsum: {sum:.5f}, count: {count}")
         # print(f"avg: {sum/count:.5f}")
-        # now_state= MyState()
+        # now_state= State()
 
         # print(str(now_state), end='')
         # print("------------------------------------")
