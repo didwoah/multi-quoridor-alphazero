@@ -7,8 +7,7 @@ import sys
 sys.path.append("../")
 
 from game import State
-from huristic_evaluation import huristic_5 as huristic    
-import brain
+from huristic_evaluation import huristic_5 as huristic
 
 def max_n(now_state: State, depth):
     now_state = copy.deepcopy(now_state)
@@ -87,16 +86,10 @@ def max_n_pruning(now_state: State, depth, upper_bound, global_upper_bound):
 
     return best_vals, best_state
 
-def random_play(state: State, p=True):
-    if p:
-        print("random play")
-
+def random_play(state: State):
     return random.choice([state.next(action) for action in state.legal_actions()])
 
-def max_n_action(state: State, p=True):    
-    if p:
-        print("max_n play")
-
+def max_n_action(state: State):
     if state.turn < 16:
         depth = 12
     elif state.turn < 32:
@@ -105,14 +98,10 @@ def max_n_action(state: State, p=True):
         depth = 12
     values, next_state = max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
 
-    if p:
-        print(f"values: {values}")
-
     return next_state
 
-def person_play(state: State, p=True):
-    if p:
-        print(f"legal actions: {state.legal_actions()}")
+def person_play(state: State):
+    print(f"legal actions: {state.legal_actions()}")
 
     action = int(input("action: "))
 
@@ -121,9 +110,6 @@ def person_play(state: State, p=True):
 def play(state: State, player, time_list=None, p=True):
     state = copy.deepcopy(state)
 
-    if p:
-        print(f"turn: {state.turn}", flush=True)
-
     if len(state.legal_actions()) == 0:
         state.turn += 1
         return state
@@ -131,15 +117,11 @@ def play(state: State, player, time_list=None, p=True):
     start = time.time()
     next_state = player(state, p)
     end = time.time()
+    print(f"turn: {state.turn}, player: {player}, runtime: {(end-start):.5f}", end='\r')
 
     run_time = end - start
     if time_list is not None:
         time_list.append(run_time)
-    
-    if p:
-        print(f"{run_time:.5f} sec", flush=True)
-        print(str(next_state), end='', flush=True)
-        print("------------------------------------", flush=True)
     
     return next_state
 
@@ -150,25 +132,26 @@ if __name__ == "__main__":
     # print("------------------------------------")
     time_list = []
     r = 100
-    wc = [0, 0, 0, 0, 0]
-    actions = [brain.brain1, brain.brain2, brain.brain3, max_n_action]
+    actions = [random_play, random_play, random_play, max_n_action]
+    actions = [[action, 0] for action in actions]
+    draws = 0
     for i in range(r):
         now_state= State()
         
         while(not now_state.is_done()):
-            now_state = play(now_state, actions[0], p=False)
+            now_state = play(now_state, actions[0][0], p=False)
             if now_state.is_done():
                 break
 
-            now_state = play(now_state, actions[1], p=False)
+            now_state = play(now_state, actions[1][0], p=False)
             if now_state.is_done():
                 break
 
-            now_state = play(now_state, actions[2], p=False)
+            now_state = play(now_state, actions[2][0], p=False)
             if now_state.is_done():
                 break
 
-            now_state = play(now_state, actions[3], p=False)
+            now_state = play(now_state, actions[3][0], p=False)
 
         actions = actions[1:] + [actions[0]]
             
@@ -184,8 +167,8 @@ if __name__ == "__main__":
         # print(f"avg: {sum/count:.5f}")
 
         if now_state.winner() != -1:
-            wc[now_state.winner()] += 1
+            actions[now_state.winner()][1] += 1
         else:
-            wc[4] += 1
+            draws += 1
 
-        print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", end='\r', flush=True)
+        print(f"{i+1}/{r}: {actions[0][0]}: {actions[0][1]/r:.5f}, {actions[1][0]}: {actions[1][1]/r:.5f}, {actions[2][0]}: {actions[2][1]/r:.5f}, {actions[3][0]}: {actions[3][1]/r:.5f}, draw: {draws/r:.5f}", end='\n', flush=True)
