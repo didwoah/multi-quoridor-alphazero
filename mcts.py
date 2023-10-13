@@ -7,7 +7,7 @@ import time
 from tqdm import tqdm
 
 
-PARENT_NODE_COUNT = 3
+PARENT_NODE_COUNT = 1
 PV_EVALUATE_COUNT = 1000
 
 
