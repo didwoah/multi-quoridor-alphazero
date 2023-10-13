@@ -7,7 +7,7 @@ import time
 from tqdm import tqdm
 
 
-PARENT_NODE_COUNT = 3
+PARENT_NODE_COUNT = 1
 PV_EVALUATE_COUNT = 1000
 
 
@@ -116,6 +116,11 @@ def mcts_action(state):
 
 EP_GANE_COUNT = 10
 
+def dirtfyPlay(state, p=True):
+    action = mcts_action(state)
+    state = state.next(action)
+    return state
+
 def play(next_actions):
     state = State()
 
@@ -137,8 +142,8 @@ def play(next_actions):
 
 def change_turn(collection):
     rlst = []
-    rlst.extend(collection[1:])
-    rlst.extend([collection[0]])
+    rlst.extend([collection[3]])
+    rlst.extend(collection[:3])
     return rlst
 
 def evaluate_algorithm_of(label, next_actions):

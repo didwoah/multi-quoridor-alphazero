@@ -7,44 +7,19 @@ import sys
 sys.path.append("../")
 
 from game import State
-import huristic_evaluation as huristic_evaluation
+from huristic_evaluation import huristic_5 as huristic
 
-class MyState(State):
-    def __init__(self, state=None):
-        if state == None:
-            super().__init__()
-        else:
-            super().__init__(state.player, state.turn)
-
-    def is_end(self):
-        return self.is_done()
-    
-    def generate_states(self):
-        actions = self.legal_actions()
-        return [MyState(copy.deepcopy(self).next(action)) for action in actions]
-
-    def evaluate(self):
-        return huristic_evaluation.huristic_5(self)
-    
-    def get_left_wall(self, turn):
-        count = len(self.player[turn][2]) + \
-            len(self.player[turn][3])
-        return 5 - count
-    
-import brain
-    
-
-def max_n(now_state: MyState, depth):
+def max_n(now_state: State, depth):
     now_state = copy.deepcopy(now_state)
 
-    if depth == 0 or now_state.is_end():
-        return now_state.evaluate(), now_state
+    if depth == 0 or now_state.is_done():
+        return huristic(now_state), now_state
     
     best_val = -float('inf')
     best_state = None
     best_vals = None
 
-    next_states = now_state.generate_states()
+    next_states = [now_state.next(action) for action in now_state.legal_actions()]
     for state in next_states:
         values, _ = max_n(state, depth-1)
         value = values[now_state.turn % 4]
@@ -55,17 +30,17 @@ def max_n(now_state: MyState, depth):
 
     return best_vals, best_state
 
-def max_n_immediate_pruning(now_state, depth, upper_bound):
+def max_n_immediate_pruning(now_state: State, depth, upper_bound):
     now_state = copy.deepcopy(now_state)
 
-    if depth == 0 or now_state.is_end():
-        return now_state.evaluate(), now_state
+    if depth == 0 or now_state.is_done():
+        return huristic(state), now_state
     
     best_val = -float('inf')
     best_state = None
     best_vals = None
 
-    next_states = now_state.generate_states()
+    next_states = [now_state.next(action) for action in now_state.legal_actions()]
     for state in next_states:
         values, _ = max_n_immediate_pruning(state, depth-1, upper_bound)
         value = values[now_state.turn]
@@ -80,17 +55,18 @@ def max_n_immediate_pruning(now_state, depth, upper_bound):
 
     return best_vals, best_state
 
-def max_n_pruning(now_state: MyState, depth, upper_bound, global_upper_bound):
+def max_n_pruning(now_state: State, depth, upper_bound, global_upper_bound):
     now_state = copy.deepcopy(now_state)
 
     if depth == 0 or now_state.is_done():
-        return now_state.evaluate(), now_state
+        return huristic(now_state), now_state
     
     # best_val = -float('inf')
     # best_state = None
     # best_vals = None
 
-    next_states = now_state.generate_states()
+    
+    next_states = [now_state.next(action) for action in now_state.legal_actions()]
 
     best_vals, _ = max_n_pruning(next_states[0], depth-1, global_upper_bound, global_upper_bound)
     best_val = best_vals[now_state.turn%4]
@@ -110,82 +86,74 @@ def max_n_pruning(now_state: MyState, depth, upper_bound, global_upper_bound):
 
     return best_vals, best_state
 
-def random_play(state: MyState, p=True):
-    if p:
-        print("random play")
+def random_play(state: State):
+    return random.choice([state.next(action) for action in state.legal_actions()])
 
-    return random.choice(state.generate_states())
-
-def max_n_action(state: MyState, p=True):
-    if p:
-        print("max_n play")
-
-    if state.turn < 30:
-        depth = 1
-    elif state.turn < 50:
-        depth = 2
+def max_n_action(state: State):
+    if state.turn < 16:
+        depth = 12
+    elif state.turn < 32:
+        depth = 12
     else:
-        depth = 3
+        depth = 12
     values, next_state = max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
 
-    if p:
-        print(f"values: {values}")
-
     return next_state
-    # return max_n(state, depth)
 
-def person_play(state: MyState, p=True):
-    if p:
-        print(f"legal actions: {state.legal_actions()}")
+def person_play(state: State):
+    print(f"legal actions: {state.legal_actions()}")
+
     action = int(input("action: "))
-    return MyState(state.next(action))
 
-def play(state: MyState, player, time_list=None, p=True):
+    return State(state.next(action))
+
+def play(state: State, player, time_list=None, p=True):
     state = copy.deepcopy(state)
 
-    if p:
-        print(f"turn: {state.turn}", flush=True)
+    if len(state.legal_actions()) == 0:
+        state.turn += 1
+        return state
 
     start = time.time()
     next_state = player(state, p)
     end = time.time()
+    print(f"turn: {state.turn}, player: {player}, runtime: {(end-start):.5f}", end='\r')
 
     run_time = end - start
     if time_list is not None:
         time_list.append(run_time)
     
-    if p:
-        print(f"{run_time:.5f} sec", flush=True)
-        print(str(next_state), end='', flush=True)
-        print("------------------------------------", flush=True)
-    
     return next_state
 
 if __name__ == "__main__":
-    # now_state= MyState()
+    # now_state= State()
 
     # print(str(now_state), end='')
     # print("------------------------------------")
     time_list = []
     r = 100
-    wc = [0, 0, 0, 0, 0]
+    actions = [random_play, random_play, random_play, max_n_action]
+    actions = [[action, 0] for action in actions]
+    draws = 0
     for i in range(r):
-        now_state= MyState()
+        now_state= State()
         
-        while(not now_state.is_end()):
-            now_state = play(now_state, brain.brain1, p=False)
-            if now_state.is_end():
+        while(not now_state.is_done()):
+            now_state = play(now_state, actions[0][0], p=False)
+            if now_state.is_done():
                 break
 
-            now_state = play(now_state, brain.brain2, p=False)
-            if now_state.is_end():
+            now_state = play(now_state, actions[1][0], p=False)
+            if now_state.is_done():
                 break
 
-            now_state = play(now_state, brain.brain3, p=False)
-            if now_state.is_end():
+            now_state = play(now_state, actions[2][0], p=False)
+            if now_state.is_done():
                 break
 
-            now_state = play(now_state, max_n_action, p=False)
+            now_state = play(now_state, actions[3][0], p=False)
+
+        actions = actions[1:] + [actions[0]]
             
         # print(f"\n{now_state.winner()} win!\n")
         
@@ -199,8 +167,8 @@ if __name__ == "__main__":
         # print(f"avg: {sum/count:.5f}")
 
         if now_state.winner() != -1:
-            wc[now_state.winner()] += 1
+            actions[now_state.winner()][1] += 1
         else:
-            wc[4] += 1
+            draws += 1
 
-        print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", end='\r', flush=True)
+        print(f"{i+1}/{r}: {actions[0][0]}: {actions[0][1]/r:.5f}, {actions[1][0]}: {actions[1][1]/r:.5f}, {actions[2][0]}: {actions[2][1]/r:.5f}, {actions[3][0]}: {actions[3][1]/r:.5f}, draw: {draws/r:.5f}", end='\n', flush=True)
