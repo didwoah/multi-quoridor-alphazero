@@ -4,10 +4,10 @@ import math
 import copy
 from game import State
 import time
-# from tqdm import tqdm
+from tqdm import tqdm
 
 
-PARENT_NODE_COUNT = 3
+PARENT_NODE_COUNT = 1
 PV_EVALUATE_COUNT = 1000
 
 
@@ -111,7 +111,7 @@ def mcts_action(state):
     root_node = Node(state)
     root_node.expand(legal_actions)
 
-    for _ in range(PV_EVALUATE_COUNT):
+    for _ in tqdm(range(PV_EVALUATE_COUNT)):
         root_node.eval()
 
     n_list = []
@@ -143,8 +143,8 @@ def play(next_actions):
 
 def change_turn(collection):
     rlst = []
-    rlst.extend(collection[1:])
-    rlst.extend([collection[0]])
+    rlst.extend([collection[3]])
+    rlst.extend(collection[:3])
     return rlst
 
 def evaluate_algorithm_of(label, next_actions):
