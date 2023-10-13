@@ -8,7 +8,7 @@ import os
 import torch
 from tqdm import tqdm
 
-SP_GAME_COUNT = 17
+SP_GAME_COUNT = 5
 SP_TEMPERATURE = 1.0
 
 def get_values(state):

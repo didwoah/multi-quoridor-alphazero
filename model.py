@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-from torchsummary import summary
+# from torchsummary import summary
 from game import State
 
 DN_RESIDUAL_NUM = 16
