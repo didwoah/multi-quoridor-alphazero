@@ -22,9 +22,9 @@ def playout(state):
     if state.is_done():
 
         if state.is_draw():
-            return [0.25 for _ in range(4)]
+            return [0 for _ in range(4)]
         
-        rlst = [0] * 4
+        rlst = [-1] * 4
         rlst[state.winner()] = 1
         return rlst
     
@@ -68,13 +68,7 @@ def mcts_action(state):
         def eval(self):
             if self.state.is_done():
 
-                scores = [0.25] * 4
-
-                if not self.state.is_draw():
-                    winner = self.state.winner()
-                    scores = [0] * 4
-                    scores[winner] = 1
-
+                scores = playout(self.state)
                 self.scores = [self.scores[i] + scores[i] for i in range(4)]
                 self.n += 1
 

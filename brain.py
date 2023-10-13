@@ -9,34 +9,38 @@ sys.path.append("C:/Users/user/Desktop/Project/Quorido/multi-quoridor-alphazero"
 from game import State
 import game as api
 
+from max_n import MyState
 
-class MyState(State):
-    def __init__(self, state=None):
-        if state == None:
-            super().__init__()
-        else:
-            super().__init__(state.player, state.turn)
 
-    def is_end(self):
-        return self.is_done()
+# class MyState(State):
+#     def __init__(self, state=None):
+#         if state == None:
+#             super().__init__()
+#         else:
+#             super().__init__(state.player, state.turn)
+
+#     def is_end(self):
+#         return self.is_done()
     
-    def generate_states(self):
-        actions = self.legal_actions()
-        return [MyState(copy.deepcopy(self).next(action)) for action in actions]
+#     def generate_states(self):
+#         actions = self.legal_actions()
+#         return [MyState(copy.deepcopy(self).next(action)) for action in actions]
     
-    def get_left_wall(self, turn):
-        count = len(self.player[turn][2]) + \
-            len(self.player[turn][3])
-        return 5 - count
+#     def get_left_wall(self, turn):
+#         count = len(self.player[turn][2]) + \
+#             len(self.player[turn][3])
+#         return 5 - count
     
 
 
 
-def brain1(state: MyState):
+def brain1(state: MyState, p = True):
+
     que = deque()
     check = [[0 for _ in range(9)] for _ in range(9)]
     turn = state.get_player()
-    print(turn)
+    if p:
+        print(turn)
     r, c = state.player[turn][0], state.player[turn][1]
     check[r][c] = 1
     for i in range(12):
@@ -63,20 +67,29 @@ def brain1(state: MyState):
         for i in range(12):
             nr, nc = qr + api.dr[i], qc + api.dc[i]
             if state.is_range(nr, nc):
-                if check[nr][nc] == 0 and state.can_go(i, qr, qc, nr, nc):
-                    que.append((nr, nc, dir))
-                    check[nr][nc] = 1
-    
+                if check[nr][nc] == 0:
+                    if state.can_go(i, qr, qc, nr, nc):
+                        que.append((nr, nc, dir))
+                        check[nr][nc] = 1
+                    for player in state.player: #건너뛰는게 더 빠르다 이경우를 큐에 못넣으면 끝에 도달 못하는 경우 생긴다
+                        #ex
+                        # - -------
+                        # 12
+                        # 1이 가려면 2를 뛰어넘고 오른쪽 밖에 못가서 끝에는 도달 못하지만 갇힌 것은 아니다.
+                        if nr == player[0] and nc == player[1]:
+                            que.append((nr,nc,dir))
+    if direction == -1:
+        return None
     if (direction > 7):
         direction = direction -8
     return MyState(copy.deepcopy(state).next(direction))
 
-def brain2(state: MyState):
+def brain2(state: MyState, p = True):
     if state.left_wall() > 0:
         random_element = random.choice(state.legal_walls())
         return MyState(copy.deepcopy(state).next(random_element))
     else :
-        return brain1(state)
+        return brain1(state, p)
 
 def min_distance(state: MyState, pivotr, pivotc, way, destination):
     que = deque()
@@ -93,9 +106,20 @@ def min_distance(state: MyState, pivotr, pivotc, way, destination):
         for i in range(12):
             nr, nc = r + api.dr[i], c + api.dc[i]
             if state.is_range(nr, nc):
-                if check[nr][nc] == 0 and state.can_go(i, r, c, nr, nc):
-                    que.append((nr, nc))
-                    check[nr][nc] = check[r][c] + 1
+                if check[nr][nc] == 0:
+                    if state.can_go(i, r, c, nr, nc):
+                        que.append((nr, nc))
+                        check[nr][nc] = check[r][c] + 1
+                    for player in state.player: #건너뛰는게 더 빠르다 이경우를 큐에 못넣으면 끝에 도달 못하는 경우 생긴다
+                        #ex
+                        # - -------
+                        # 12
+                        # 1이 가려면 2를 뛰어넘고 오른쪽 밖에 못가서 끝에는 도달 못하지만 갇힌 것은 아니다.
+                        if nr == player[0] and nc == player[1]:
+                            que.append((nr,nc))
+                            check[nr][nc] = check[r][c] + 1
+    
+    print('뭔가 ㅈ됨')
 
 def get_pivot(state: MyState):
     sum = 0
@@ -166,83 +190,129 @@ def brain3walling(state:MyState):
     else:
         return -1
 
-def brain3(state: MyState):
+def brain3(state: MyState, p = True):
     if state.left_wall() > 0:
         action = brain3walling(state)
         if action == -1:
-            return brain1(state)
+            return brain1(state, p)
         return MyState(copy.deepcopy(state).next(action))
     else :
-        return brain1(state)
+        return brain1(state, p)
 
-
-
-
-def bot_play(state: MyState, brainType):
-    if brainType == 1:
-        return brain1(state)   
-    elif brainType == 2:
-        return brain2(state)
-    elif brainType == 3:
-        return brain3(state)
+# def bot_play(state: MyState, brainType):
+#     if brainType == 1:
+#         return brain1(state)   
+#     elif brainType == 2:
+#         return brain2(state)
+#     elif brainType == 3:
+#         return brain3(state)
 
 def person_play(state: MyState):
     print(f"legal actions: {state.legal_actions()}")
     action = int(input("action: "))
     return MyState(state.next(action))
 
-def play(state: MyState, is_person, brainType = 1, time_list=[]):
+def random_play(state: MyState, p=True):
+    if p:
+        print("random play")
+
+    return random.choice(state.generate_states())
+
+def play(state: MyState, player, time_list = None, p = True):
     state = copy.deepcopy(state)
 
-    print(f"turn: {state.turn}")
+    if p:
+        print(f"turn: {state.turn}")
 
-    if is_person:
-        next_state = person_play(state)
-    else:
-        start = time.time()
-        next_state = bot_play(state, brainType)
-        end = time.time()
+    start = time.time()
+    next_state = player(state, p)
+    end = time.time()
 
-        run_time = end - start
+    run_time = end - start
+    if time_list is not None:
         time_list.append(run_time)
 
-        print(f"{run_time:.5f} sec")
+    if p:
+        print(f"{run_time:.5f} sec", flush=True)
+        print(str(next_state), end='', flush=True)
+        print("------------------------------------", flush=True)
 
-    print(str(next_state), end='')
-    print("------------------------------------")
-    
     return next_state
 
+
 if __name__ == "__main__":
-    now_state= MyState()
-    brainType = 1
-
-    print(str(now_state), end='')
-    print("------------------------------------")
-
     time_list = []
-    while(not now_state.is_end()):
-        now_state = play(now_state, False, brainType, time_list)
-        if now_state.is_end():
-            break
-
-        now_state = play(now_state, False, brainType + 1)
-        if now_state.is_end():
-            break
-
-        now_state = play(now_state, False, brainType + 2)
-        if now_state.is_end():
-            break
-
-        now_state = play(now_state, True)
+    r = 100
+    wc = [0, 0, 0, 0, 0]
+    for i in range(r):
+        now_state= MyState()
         
-    print(f"\n{now_state.winner()} win!\n")
-    
-    sum = 0
-    count = 0
-    for t in time_list:
-        print(f"{t:.5f}", end=' ')
-        sum += t
-        count += 1
-    print(f"\nsum: {sum:.5f}, count: {count}")
-    print(f"avg: {sum/count:.5f}")
+        while(not now_state.is_end()):
+            now_state = play(now_state, brain1, p= False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, brain2, p=False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, brain3, p=False)
+            if now_state.is_end():
+                break
+
+            now_state = play(now_state, random_play, p=False)
+            
+        # print(f"\n{now_state.winner()} win!\n")
+        
+        # sum = 0
+        # count = 0
+        # for t in time_list:
+        #     print(f"{t:.5f}", end=' ')
+        #     sum += t
+        #     count += 1
+        # print(f"\nsum: {sum:.5f}, count: {count}")
+        # print(f"avg: {sum/count:.5f}")
+
+        if now_state.winner() != -1:
+            wc[now_state.winner()] += 1
+        else:
+            wc[4] += 1
+
+        print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", flush=True)
+
+        # now_state= MyState()
+        # brainType = 1
+
+        # print(str(now_state), end='')
+        # print("------------------------------------")
+
+        # time_list = []
+        # while(not now_state.is_end()):
+        #     now_state = play(now_state, False, brainType, time_list)
+        #     if now_state.is_end():
+        #         break
+
+        #     now_state = play(now_state, False, brainType + 1)
+        #     if now_state.is_end():
+        #         break
+
+        #     now_state = play(now_state, False, brainType + 2)
+        #     if now_state.is_end():
+        #         break
+
+        #     now_state = play(now_state, True)
+            
+        # print(f"\n{now_state.winner()} win!\n")
+        
+        # sum = 0
+        # count = 0
+        # for t in time_list:
+        #     print(f"{t:.5f}", end=' ')
+        #     sum += t
+        #     count += 1
+        # print(f"\nsum: {sum:.5f}, count: {count}")
+        # print(f"avg: {sum/count:.5f}")
+        # now_state= MyState()
+
+        # print(str(now_state), end='')
+        # print("------------------------------------")
