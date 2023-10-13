@@ -90,7 +90,7 @@ def min_distance(state: State, pivotr, pivotc, way, destination):
                     for player in state.player: #건너뛰는게 더 빠르다 이경우를 큐에 못넣으면 끝에 도달 못하는 경우 생긴다
                         #ex
                         # - -------
-                        # 12
+                        # 12 
                         # 1이 가려면 2를 뛰어넘고 오른쪽 밖에 못가서 끝에는 도달 못하지만 갇힌 것은 아니다.
                         if nr == player[0] and nc == player[1]:
                             que.append((nr,nc))
