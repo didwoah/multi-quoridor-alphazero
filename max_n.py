@@ -34,7 +34,7 @@ def max_n_immediate_pruning(now_state: State, depth, upper_bound):
     now_state = copy.deepcopy(now_state)
 
     if depth == 0 or now_state.is_done():
-        return huristic(state), now_state
+        return huristic(now_state), now_state
     
     best_val = -float('inf')
     best_state = None
