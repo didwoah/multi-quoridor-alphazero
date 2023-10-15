@@ -10,17 +10,29 @@ sys.path.append("../")
 from game import State
 
 class TestState(State):
+    def __init__(self, state=None):
+        if state is None:
+            super().__init__()
+        else:
+            super().__init__(player=state.player, turn=state.turn)
+
     def is_draw(self):
         return self.turn > 1000
+    
+    def is_done(self):
+        return self.is_draw() or super().winner() != -1
     
 def play(state: TestState):
     legal_actions = state.legal_actions()
     if len(legal_actions) == 0:
-        return state.next(None)
+        return TestState(state.next(None))
     else:
-        return state.next(random.choice(legal_actions))
-
-repeat = 1000
+        return TestState(state.next(random.choice(legal_actions)))
+    
+repeat = 10000
+## Load pickle
+# with open("turn_distribution.pickle","rb") as fr:
+#     turn_list = pickle.load(fr)
 turn_list = []
 
 for i in tqdm(range(repeat)):
@@ -34,13 +46,11 @@ for i in tqdm(range(repeat)):
 
     turn_list.append(state.turn)
 
+# print(turn_list)
+
 ## Save pickle
 with open("turn_distribution.pickle","wb") as fw:
     pickle.dump(turn_list, fw)
- 
-## Load pickle
-# with open("turn_distribution.pickle","rb") as fr:
-#     data = pickle.load(fr)
 
 plt.boxplot(turn_list, vert=False)
 plt.title("turn distribution box plot")
