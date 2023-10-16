@@ -127,9 +127,18 @@ def pv_mtcs_scores(model, state, temperature):
 def pv_mcts_action(model, temperature = 0):
     def pv_mcts_action(state):
         scores = pv_mtcs_scores(model, state, temperature)
-        return np.random.choice(state.legal_actions(True), p=scores)
+        legal_actions = state.legal_actions(True)
+        if len(legal_actions) == 0:
+            return None
+        return np.random.choice(legal_actions, p=scores)
     
     return pv_mcts_action
+
+def pv_mcts(model, temperature = 0):
+    next_action = pv_mcts_action(model, temperature)
+    def pv_mcts(state:State):
+        return state.next(next_action(state))
+    return pv_mcts
 
 def boltzman(xs, temperature):
     xs = [x ** (1/temperature) for x in xs]
@@ -140,7 +149,8 @@ def boltzman(xs, temperature):
 
 if __name__ == '__main__':
 
-    model  = resnet()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model  = resnet().to(device)
     model.eval()
 
     state = State()

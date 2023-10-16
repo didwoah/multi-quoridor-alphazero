@@ -116,10 +116,9 @@ def mcts_action(state):
 
 EP_GANE_COUNT = 10
 
-def dirtfyPlay(state, p=True):
+def mcts(state, p=True):
     action = mcts_action(state)
-    state = state.next(action)
-    return state
+    return state.next(action)
 
 def play(next_actions):
     state = State()

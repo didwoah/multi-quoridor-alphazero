@@ -78,8 +78,8 @@ bool canGo(int dir, int x, int y, int nx, int ny) {
     return false;
 }
 
-void move() {                   //player¸» ¿òÁ÷ÀÌ±â
-    int cango[12][2];           //°¥ ¼ö ÀÖ´Â°÷ÁÂÇ¥µéÀÇ stack
+void move() {                   //playerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì±ï¿½
+    int cango[12][2];           //ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´Â°ï¿½ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ stack
     int rear = 0;
     for (int i = 0; i < 12; i++) {
         int nx = player.x + px[i];
@@ -93,11 +93,11 @@ void move() {                   //player¸» ¿òÁ÷ÀÌ±â
     }
     map[player.x][player.y] = 0;
     int way;
-    printf("°¥¼öÀÖ´Â °÷\n");
+    printf("ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½\n");
     for (int i = 0; i < rear; i++) {
         printf("%d : (%d,%d)\n", i + 1, cango[i][0], cango[i][1]);
     }
-    printf("ÀÔ·ÂÇØÁÖ¼¼¿ä.\n");
+    printf("ï¿½Ô·ï¿½ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½.\n");
     scanf("%d", &way);
     player.x = cango[way - 1][0];
     player.y = cango[way - 1][1];
