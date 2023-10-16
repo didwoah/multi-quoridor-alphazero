@@ -34,7 +34,7 @@ def max_n_immediate_pruning(now_state: State, depth, upper_bound):
     now_state = copy.deepcopy(now_state)
 
     if depth == 0 or now_state.is_done():
-        return huristic(state), now_state
+        return huristic(now_state), now_state
     
     best_val = -float('inf')
     best_state = None
@@ -91,11 +91,11 @@ def random_play(state: State):
 
 def max_n_action(state: State):
     if state.turn < 16:
-        depth = 12
+        depth = 3
     elif state.turn < 32:
-        depth = 12
+        depth = 3
     else:
-        depth = 12
+        depth = 3
     values, next_state = max_n_pruning(state, depth, upper_bound=1, global_upper_bound=1)
 
     return next_state
@@ -130,6 +130,8 @@ if __name__ == "__main__":
 
     # print(str(now_state), end='')
     # print("------------------------------------")
+
+
     time_list = []
     r = 100
     actions = [random_play, random_play, random_play, max_n_action]

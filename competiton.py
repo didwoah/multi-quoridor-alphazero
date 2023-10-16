@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 TEMPEARTURE = 1.0
 
-def play(state: State, player, time_list=None):
+def play(state: State, player, time_list=None, p=False):
     state = copy.deepcopy(state)
 
     if len(state.legal_actions()) == 0:
