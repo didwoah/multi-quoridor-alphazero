@@ -12,7 +12,7 @@ RN_EPOCHS = 100
 LEARNING_RATE = 1e-4
 
 def load_data():
-    history_path = sorted(Path('./data').glob('*.history'))[-1]
+    history_path = sorted(Path('./data').glob('*.history'))[0]
     with history_path.open(mode='rb') as f:
         return pickle.load(f)
 

@@ -8,7 +8,7 @@ import os
 import torch
 from tqdm import tqdm
 
-SP_GAME_COUNT = 5
+SP_GAME_COUNT = 10
 SP_TEMPERATURE = 1.0
 
 def get_values(state):
@@ -66,5 +66,8 @@ if __name__ == '__main__':
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
-    model = resnet().to(device)
+    model = resnet()
+    model.load_state_dict(torch.load('./model/chekpoint1.pth'))
+    model = model.to(device)
+    model.eval()
     self_play(model)
