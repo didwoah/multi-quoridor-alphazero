@@ -29,7 +29,7 @@ if __name__ == "__main__":
     draws = 0
 
     brains = [ brain.brain1,  brain.brain2,  brain.brain3]
-    lst = [mcts.dirtfyPlay, max_n.max_n_action]
+    lst = [max_n.max_n_action]
 
     for e in lst:
         for b in brains:
