@@ -12,7 +12,8 @@ RN_EPOCHS = 100
 LEARNING_RATE = 1e-4
 
 def load_data():
-    history_path = sorted(Path('./data').glob('*.history'))[0]
+    history_path = sorted(Path('./data').glob('*.history'))[-1]
+    print(history_path)
     with history_path.open(mode='rb') as f:
         return pickle.load(f)
 
@@ -27,8 +28,11 @@ def train_network():
     # Create an instance of your PyTorch model and load the model checkpoint
     model = resnet()
     # torch.save(model.state_dict(), './model/chekpoint0.pth')
-    model.load_state_dict(torch.load('./model/chekpoint0.pth'))
+    model.load_state_dict(torch.load('./model/chekpoint1.pth'))
     model.train()  # Set the model to evaluation mode
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(device)
+    model.to(device)
     
     # Define the loss functions and optimizer
     criterion_policy = nn.CrossEntropyLoss()
@@ -48,6 +52,9 @@ def train_network():
             y_polices_tensor = y_polices_tensor.unsqueeze(0)
             y_values_tensor = torch.tensor(v, dtype=torch.float32)
             y_values_tensor = y_values_tensor.unsqueeze(0)
+            x_tensor = x_tensor.to(device)
+            y_polices_tensor = y_polices_tensor.to(device)
+            y_values_tensor = y_values_tensor.to(device)
 
             # Zero the gradients
             optimizer.zero_grad()
@@ -76,13 +83,13 @@ def train_network():
         print('Train {}/{} - Loss: {:.4f}'.format(epoch + 1, RN_EPOCHS, total_loss))
 
     # Save the trained model
-    torch.save(model.state_dict(), './model/chekpoint1.pth')
+    torch.save(model.state_dict(), './model/chekpoint2.pth')
     write_data(losses)
 
 
 def write_data(losses):
     os.makedirs('./data/', exist_ok=True)
-    path = './data/chekpoint1.loss'
+    path = './data/chekpoint2.loss'
     with open(path, mode='wb') as f:
         pickle.dump(losses, f)
 

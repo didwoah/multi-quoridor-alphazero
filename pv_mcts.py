@@ -137,7 +137,7 @@ def pv_mcts_action(model, temperature = 0):
 def pv_mcts(model, temperature = 0):
     next_action = pv_mcts_action(model, temperature)
     def pv_mcts(state:State):
-        return state.next(next_action(state))
+        return state.next(next_action(state), True)
     return pv_mcts
 
 def boltzman(xs, temperature):

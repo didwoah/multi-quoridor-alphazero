@@ -64,7 +64,7 @@ class State:
                 self.serowall[v[0]+1][v[1]] = self.wallcnt
 
     def is_draw(self):
-        return self.turn > 300
+        return self.turn > 428
     
     def get_player(self):
         return self.turn % 4
@@ -224,7 +224,6 @@ class State:
                         actions.append(direction)
         actions.sort()
         if (self.left_wall() <= 0):
-            #여기서도 체크했어야지 재모야...
             if is_alpha_zero:
                 actions = [self.action_mapping_abs2rel(self.turn, a) for a in actions]
                 actions = sorted(actions)
