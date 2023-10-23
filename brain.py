@@ -16,8 +16,8 @@ def brain1(state: State, p = False):
     que = deque()
     check = [[0 for _ in range(9)] for _ in range(9)]
     turn = state.get_player()
-    if p:
-        print(turn)
+#    if p:
+#        print(turn)
     r, c = state.player[turn][0], state.player[turn][1]
     check[r][c] = 1
     for i in range(12):
@@ -96,7 +96,6 @@ def min_distance(state: State, pivotr, pivotc, way, destination):
                             que.append((nr,nc))
                             check[nr][nc] = check[r][c] + 1
     
-    print('뭔가 ㅈ됨')
 
 def get_pivot(state: State):
     sum = 0
@@ -185,21 +184,21 @@ def brain3(state: State, p = True):
 #         return brain3(state)
 
 def person_play(state: State):
-    print(f"legal actions: {state.legal_actions()}")
+#    print(f"legal actions: {state.legal_actions()}")
     action = int(input("action: "))
     return state.next(action)
 
 def random_play(state: State, p=True):
-    if p:
-        print("random play")
+#    if p:
+#        print("random play")
 
     return random.choice(state.generate_states())
 
 def play(state: State, player, time_list = None, p = True):
     state = copy.deepcopy(state)
 
-    if p:
-        print(f"turn: {state.turn}")
+#    if p:
+#        print(f"turn: {state.turn}")
 
     start = time.time()
     next_state = player(state, p)
@@ -209,10 +208,10 @@ def play(state: State, player, time_list = None, p = True):
     if time_list is not None:
         time_list.append(run_time)
 
-    if p:
-        print(f"{run_time:.5f} sec", flush=True)
-        print(str(next_state), end='', flush=True)
-        print("------------------------------------", flush=True)
+#    if p:
+#        print(f"{run_time:.5f} sec", flush=True)
+#        print(str(next_state), end='', flush=True)
+#        print("------------------------------------", flush=True)
 
     return next_state
 
@@ -255,7 +254,7 @@ if __name__ == "__main__":
         else:
             wc[4] += 1
 
-        print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", flush=True)
+#        print(f"{i+1}/{r}: {wc[0]/r:.5f}, {wc[1]/r:.5f}, {wc[2]/r:.5f}, {wc[3]/r:.5f}, {wc[4]/r:.5f}", flush=True)
 
         # now_state= State()
         # brainType = 1

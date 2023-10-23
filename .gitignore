@@ -1,3 +1,6 @@
 *.h5
+*.pth
+data/
+model/
 .vscode/
 __pycache__/

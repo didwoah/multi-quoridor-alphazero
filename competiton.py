@@ -33,16 +33,12 @@ if __name__ == '__main__':
     r = 20
     draws = 0
 
-<<<<<<< HEAD
-    brains = [ brain.brain1,  brain.brain2,  brain.brain3]
-    lst = [max_n.max_n_action]
-=======
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = resnet()
-    model.load_state_dict(torch.load('./model/chekpoint1.pth'))
+    model.load_state_dict(torch.load('./model/chekpoint2.pth'))
     model = model.to(device)
     model.eval()
->>>>>>> 75de8902403ded4453dd20f745153913a2a4cc8e
 
     brains = [brain.brain1, brain.brain2, brain.brain3]
     for b in brains:
