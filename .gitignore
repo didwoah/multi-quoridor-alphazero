@@ -1,5 +1,8 @@
-*.h5
 *.pth
+
+fig/
+handong/
+bin/
 data/
 model/
 .vscode/
